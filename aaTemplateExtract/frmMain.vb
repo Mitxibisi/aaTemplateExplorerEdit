@@ -88,66 +88,54 @@ Public Class frmMain
     End Sub
 
     Public Sub exportTemplatesToFile(ByVal FilePath As String, ByVal TemplateNames As String())
-        Dim objStreamWriter As StreamWriter
         Dim TemplateDirectory As String
-        Dim ScriptFile As String
         Dim AttributeFile As String
-        Dim TemplateName As String
 
-        ' I'm not a fan of all the xmlns:xsd and xmlns:xsi in the top of our XML document, so creating a new, blank namespace for writing
+        ' Creando un nuevo espacio de nombres para escribir
         Dim ns = New System.Xml.Serialization.XmlSerializerNamespaces()
         ns.Add("", "")
 
         Try
             For Each TemplateName In TemplateNames
-
-                ' Setup our main template directory that each script file will be put into
-                TemplateDirectory = FilePath + "\" + Replace(TemplateName, "$", "") + "\"
+                ' Configurando el directorio principal de la plantilla
+                TemplateDirectory = Path.Combine(FilePath, TemplateName)
                 My.Computer.FileSystem.CreateDirectory(TemplateDirectory)
 
                 Dim TemplateData = aaTemplateExtract.getTemplateData(TemplateName)
 
-                ' If there's any Scripts in the template, export each one to its own XML file
-                If TemplateData.Scripts.Count > 0 Then
-                    My.Computer.FileSystem.CreateDirectory(TemplateDirectory + "\Scripts\")
-                    For Each ScriptData As aaScript In TemplateData.Scripts
-                        ScriptFile = TemplateDirectory + "\Scripts\" + ScriptData.Name + ".xml"
-                        objStreamWriter = New StreamWriter(ScriptFile)
-                        Dim x As New XmlSerializer(ScriptData.GetType)
-                        x.Serialize(objStreamWriter, ScriptData, ns)
-                        objStreamWriter.Close()
-                    Next
-                End If
+                ' Crear la clase contenedora
+                Dim fieldAttributesContainer As New FieldAttributesContainer()
 
-                ' If there's any Discrete Field Attributes, export them all to a single XML file
+                ' Agregar los atributos discretos
                 If TemplateData.FieldAttributesDiscrete.Count > 0 Then
-                    My.Computer.FileSystem.CreateDirectory(TemplateDirectory + "\Attributes\")
-                    AttributeFile = TemplateDirectory + "\Attributes\Field Attributes - Discrete.xml"
-                    objStreamWriter = New StreamWriter(AttributeFile)
                     For Each AttributeData As aaFieldAttributeDiscrete In TemplateData.FieldAttributesDiscrete
-                        Dim x As New XmlSerializer(AttributeData.GetType)
-                        x.Serialize(objStreamWriter, AttributeData, ns)
+                        If AttributeData IsNot Nothing Then
+                            fieldAttributesContainer.DiscreteAttributes.Add(AttributeData)
+                        End If
                     Next
-                    objStreamWriter.Close()
                 End If
 
-                ' If there's any Analog Field Attributes, export them all to a single XML file
+                ' Agregar los atributos analógicos
                 If TemplateData.FieldAttributesAnalog.Count > 0 Then
-                    My.Computer.FileSystem.CreateDirectory(TemplateDirectory + "\Attributes\")
-                    AttributeFile = TemplateDirectory + "\Attributes\Field Attributes - Analog.xml"
-                    objStreamWriter = New StreamWriter(AttributeFile)
                     For Each AttributeData As aaFieldAttributeAnalog In TemplateData.FieldAttributesAnalog
-                        Dim x As New XmlSerializer(AttributeData.GetType)
-                        x.Serialize(objStreamWriter, AttributeData, ns)
+                        If AttributeData IsNot Nothing Then
+                            fieldAttributesContainer.AnalogAttributes.Add(AttributeData)
+                        End If
                     Next
-                    objStreamWriter.Close()
                 End If
-            Next
-            MessageBox.Show("Done exporting " & TemplateNames.Count & " template(s).")
-        Catch e As Exception
-            MessageBox.Show("Error occurred: " & e.Message)
-        End Try
 
+                ' Serializar los atributos combinados a un solo archivo XML
+                AttributeFile = Path.Combine(TemplateDirectory, "Field Attributes.xml")
+                My.Computer.FileSystem.CreateDirectory(Path.Combine(TemplateDirectory))
+                Using objStreamWriter As New StreamWriter(AttributeFile)
+                    Dim x As New XmlSerializer(fieldAttributesContainer.GetType)
+                    x.Serialize(objStreamWriter, fieldAttributesContainer, ns)
+                End Using
+            Next
+            MessageBox.Show("Done exporting " & TemplateNames.Length & " template(s).")
+        Catch e As Exception
+            MessageBox.Show("Error occurred: " & e.Message & vbCrLf & e.StackTrace)
+        End Try
     End Sub
 
     Private Sub linkLblSelectAll_Click(sender As Object, e As EventArgs) Handles linkLblSelectAll.Click
@@ -236,4 +224,7 @@ Public Class frmMain
         lblStatus.Text = ""
     End Sub
 
+    Private Sub lstTemplates_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstTemplates.SelectedIndexChanged
+
+    End Sub
 End Class
