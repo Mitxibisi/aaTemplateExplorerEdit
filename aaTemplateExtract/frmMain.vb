@@ -21,6 +21,8 @@
 
 Imports System.IO
 Imports System.Xml.Serialization
+Imports System.Xml.Linq
+Imports System.Text
 
 Public Class frmMain
 
@@ -199,7 +201,9 @@ Public Class frmMain
 
         exportTemplatesToFile(ExportFolder, TemplateNames)
 
-        lblStatus.Text = ""
+        TemplatesCSV(ExportFolder)
+
+        lblStatus.Text = "Archivo CSV generado"
 
     End Sub
 
@@ -226,5 +230,34 @@ Public Class frmMain
 
     Private Sub lstTemplates_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lstTemplates.SelectedIndexChanged
 
+    End Sub
+
+    Public Sub TemplatesCSV(ByVal FilePath As String)
+        Dim outputFile As String = Path.Combine(FilePath, "atributos_extraidos.csv")
+
+        Try
+            Dim data As New List(Of String)
+            data.Add("Plantilla,Nombre,Historizado,Eventos,Alarm,Descripción") ' Encabezado CSV
+
+            For Each folder As String In Directory.GetDirectories(FilePath)
+                Dim templateName As String = Path.GetFileName(folder)
+                For Each file As String In Directory.GetFiles(folder, "*.xml")
+                    Dim xmlDoc As XDocument = XDocument.Load(file)
+                    For Each attribute As XElement In xmlDoc.Descendants("Attribute")
+                        Dim nombre As String = attribute.Attribute("name")?.Value
+                        Dim descripcion As String = attribute.Element("Description")?.Value
+                        Dim historized As String = attribute.Element("Historized")?.Value
+                        Dim eventos As String = attribute.Element("Events")?.Value
+                        Dim alarm As String = attribute.Element("Alarm")?.Value
+                        data.Add($"{templateName},{nombre},{historized},{eventos},{alarm},{descripcion}")
+                    Next
+                Next
+            Next
+
+            File.WriteAllLines(outputFile, data, Encoding.UTF8)
+            MessageBox.Show("Datos extraídos y guardados en: " & outputFile, "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Catch ex As Exception
+            MessageBox.Show("Error: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 End Class

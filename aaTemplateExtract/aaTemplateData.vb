@@ -119,6 +119,7 @@ Public Module aaTemplateData
         Public Events As String
         Public Alarm As Boolean
 
+
         Public Sub New()
 
         End Sub
@@ -132,6 +133,7 @@ Public Module aaTemplateData
             Me.Historized = Historized
             Me.Events = Events
             Me.Alarm = Alarm
+
 
         End Sub
 

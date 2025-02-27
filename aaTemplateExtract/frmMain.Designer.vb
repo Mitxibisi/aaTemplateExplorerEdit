@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class frmMain
     Inherits System.Windows.Forms.Form
 
     'Form overrides dispose to clean up the component list.
-    <System.Diagnostics.DebuggerNonUserCode()> _
+    <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -20,7 +20,7 @@ Partial Class frmMain
     'NOTE: The following procedure is required by the Windows Form Designer
     'It can be modified using the Windows Form Designer.  
     'Do not modify it using the code editor.
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.cmboGalaxyList = New System.Windows.Forms.ComboBox()
         Me.Label1 = New System.Windows.Forms.Label()
@@ -85,7 +85,7 @@ Partial Class frmMain
         'Label5
         '
         Me.Label5.AutoSize = True
-        Me.Label5.Location = New System.Drawing.Point(32, 352)
+        Me.Label5.Location = New System.Drawing.Point(33, 358)
         Me.Label5.Name = "Label5"
         Me.Label5.Size = New System.Drawing.Size(65, 13)
         Me.Label5.TabIndex = 9
@@ -104,7 +104,7 @@ Partial Class frmMain
         '
         Me.Label6.AutoSize = True
         Me.Label6.ForeColor = System.Drawing.Color.Red
-        Me.Label6.Location = New System.Drawing.Point(126, 386)
+        Me.Label6.Location = New System.Drawing.Point(126, 387)
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(216, 13)
         Me.Label6.TabIndex = 11
@@ -228,7 +228,7 @@ Partial Class frmMain
         '
         'btnBrowseFolders
         '
-        Me.btnBrowseFolders.Location = New System.Drawing.Point(33, 326)
+        Me.btnBrowseFolders.Location = New System.Drawing.Point(33, 327)
         Me.btnBrowseFolders.Name = "btnBrowseFolders"
         Me.btnBrowseFolders.Size = New System.Drawing.Size(104, 23)
         Me.btnBrowseFolders.TabIndex = 19
@@ -238,7 +238,7 @@ Partial Class frmMain
         'lblFolderPath
         '
         Me.lblFolderPath.AutoSize = True
-        Me.lblFolderPath.Location = New System.Drawing.Point(98, 352)
+        Me.lblFolderPath.Location = New System.Drawing.Point(99, 358)
         Me.lblFolderPath.Name = "lblFolderPath"
         Me.lblFolderPath.Size = New System.Drawing.Size(10, 13)
         Me.lblFolderPath.TabIndex = 20
@@ -381,5 +381,4 @@ Partial Class frmMain
     Friend WithEvents chkHideBaseTemplates As System.Windows.Forms.CheckBox
     Friend WithEvents StatusStrip1 As System.Windows.Forms.StatusStrip
     Friend WithEvents lblStatus As System.Windows.Forms.ToolStripStatusLabel
-
 End Class
