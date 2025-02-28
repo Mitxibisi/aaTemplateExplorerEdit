@@ -237,7 +237,7 @@ Public Class frmMain
 
         Try
             Dim data As New List(Of String)
-            data.Add("Plantilla,Nombre,Historizado,Eventos,Alarm,Descripción") ' Encabezado CSV
+            data.Add("Plantilla,Nombre,Plantilla derivada,Descripción,Historizado,Eventos,Alarm,Unidad") ' Encabezado CSV
 
             For Each folder As String In Directory.GetDirectories(FilePath)
                 Dim templateName As String = Path.GetFileName(folder)
@@ -245,11 +245,13 @@ Public Class frmMain
                     Dim xmlDoc As XDocument = XDocument.Load(file)
                     For Each attribute As XElement In xmlDoc.Descendants("Attribute")
                         Dim nombre As String = attribute.Attribute("name")?.Value
+                        Dim PlantillaDev As String = attribute.Attribute("TemplateName")?.Value
                         Dim descripcion As String = attribute.Element("Description")?.Value
                         Dim historized As String = attribute.Element("Historized")?.Value
                         Dim eventos As String = attribute.Element("Events")?.Value
                         Dim alarm As String = attribute.Element("Alarm")?.Value
-                        data.Add($"{templateName},{nombre},{historized},{eventos},{alarm},{descripcion}")
+                        Dim EngUnit As String = If(attribute.Element("EngUnit")?.Value, "")
+                        data.Add($"{templateName},{nombre},{PlantillaDev},{descripcion},{historized},{eventos},{alarm},{EngUnit}")
                     Next
                 Next
             Next

@@ -267,7 +267,8 @@ Public Class aaTemplateExtract
                 GetAttrString(attrName + ".Desc", gAttributes),
                 GetAttrBoolean(attrName + ".Historized", gAttributes),
                 GetAttrBoolean(attrName + ".LogDataChangeEvent", gAttributes),
-                GetAttrBoolean(attrName + ".Alarmed", gAttributes))
+                GetAttrBoolean(attrName + ".Alarmed", gAttributes),
+                GetAttrString(attrName + ".EngUnits", gAttributes))
 
             ' Finally, add it to a (growing) collection of field attributes
             FieldAttributes.Add(DiscreteAttrData)
@@ -299,7 +300,8 @@ Public Class aaTemplateExtract
                 GetAttrString(attrName + ".Desc", gAttributes),
                 GetAttrBoolean(attrName + ".Historized", gAttributes),
                 GetAttrBoolean(attrName + ".LogDataChangeEvent", gAttributes),
-                GetAttrBoolean(attrName + ".Alarmed", gAttributes))
+                GetAttrBoolean(attrName + ".Alarmed", gAttributes),
+                GetAttrString(attrName + ".EngUnits", gAttributes))
 
             ' Finally, add it to a (growing) collection of field attributes
             FieldAttributes.Add(AnalogAttrData)

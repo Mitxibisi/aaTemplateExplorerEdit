@@ -88,13 +88,14 @@ Public Module aaTemplateData
         Public Historized As String
         Public Events As String
         Public Alarm As Boolean
+        Public EngUnits As String
 
         Public Sub New()
 
         End Sub
 
         Public Sub New(ByVal Name As String, ByVal TemplateName As String,
-                       ByVal Description As String, ByVal Historized As Boolean, ByVal Events As Boolean, ByVal Alarm As Boolean)
+                       ByVal Description As String, ByVal Historized As Boolean, ByVal Events As Boolean, ByVal Alarm As Boolean, ByVal EngUnits As String)
 
             Me.Name = Name
             Me.TemplateName = TemplateName
@@ -102,6 +103,7 @@ Public Module aaTemplateData
             Me.Historized = Historized
             Me.Events = Events
             Me.Alarm = Alarm
+            Me.EngUnits = EngUnits
 
         End Sub
 
@@ -118,6 +120,7 @@ Public Module aaTemplateData
         Public Historized As String
         Public Events As String
         Public Alarm As Boolean
+        Public EngUnits As String
 
 
         Public Sub New()
@@ -125,7 +128,7 @@ Public Module aaTemplateData
         End Sub
 
         Public Sub New(ByVal Name As String, ByVal TemplateName As String,
-                       ByVal Description As String, ByVal Historized As Boolean, ByVal Events As Boolean, ByVal Alarm As Boolean)
+                       ByVal Description As String, ByVal Historized As Boolean, ByVal Events As Boolean, ByVal Alarm As Boolean, ByVal EngUnits As String)
 
             Me.Name = Name
             Me.TemplateName = TemplateName
@@ -133,7 +136,7 @@ Public Module aaTemplateData
             Me.Historized = Historized
             Me.Events = Events
             Me.Alarm = Alarm
-
+            Me.EngUnits = EngUnits
 
         End Sub
 
