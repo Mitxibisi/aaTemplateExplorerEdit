@@ -265,8 +265,7 @@ Public Class aaTemplateExtract
                     EditarCfgMapeado(gAttributes, CodigoObjeto, DescObjeto, instance)
                     instance.Save()
                     instance.Area = AreaName
-                    'instance.Deploy(EActionForCurrentlyDeployedObjects.deployChanges, ESkipIfCurrentlyUndeployed.dontSkipIfCurrentlyUndeployed, EDeployOnScan.doDeployOnScan, EForceOffScan.doForceOffScan, ECascade.doCascade, True)
-                Else
+                    Else
                     MessageBox.Show("Error: Template not found")
                 End If
             Else
@@ -278,36 +277,28 @@ Public Class aaTemplateExtract
         End Try
     End Sub
 
-    'No funciona analizar mas
     Private Sub EditarCfgMapeado(gAttributes As aaGRAccess.IAttributes, CodigoObjeto As String, DescObjeto As String, Instance As aaGRAccessApp.IInstance)
-        Dim MXVal_Codigo As aaGRAccess.MxValue = New aaGRAccess.MxValue()
-        Dim MXVal_Desc As aaGRAccess.MxValue = New aaGRAccess.MxValue()
-        Try
-            If gAttributes.Item("Cfg_CodigoObjeto") Is Nothing Then
-                Console.WriteLine("El atributo 'Cfg_CodigoObjeto' no existe.")
-                Return
-            End If
-
-            If gAttributes.Item("Cfg_DescObjeto") Is Nothing Then
-                Console.WriteLine("El atributo 'Cfg_DescObjeto' no existe.")
-                Return
-            End If
-
-            Dim codigoObjetoAttr As aaGRAccess.IAttribute = gAttributes.Item("Cfg_CodigoObjeto")
-            Dim descObjetoAttr As aaGRAccess.IAttribute = gAttributes.Item("Cfg_DescObjeto")
-
-            MXVal_Codigo.PutString(CodigoObjeto)
-            MXVal_Desc.PutString(DescObjeto)
-
-            codigoObjetoAttr.SetValue(MXVal_Codigo)
-            descObjetoAttr.SetValue(MXVal_Desc)
-
-            Instance.Save()
-            Instance.CheckIn()
-
+            ToMxValue(DescObjeto)
+            ToMxValue(CodigoObjeto)
         Catch ex As Exception
             Console.WriteLine("Error al actualizar: " & ex.Message)
         End Try
+    End Sub
+
+    Private Sub ToMxValue (Atribute As String,gAttributes As aaGRAccess.IAttributes)
+        Dim MXVal_ As aaGRAccess.MxValue = New aaGRAccess.MxValue()
+        Dim Attr As aaGRAccess.IAttribute = gAttributes.Item(Atribute)
+
+        If gAttributes.Item(Atribute) Is Nothing Then
+            MessageBox.Show("El atributo " & Atribute & "no existe.")
+            Return
+        End If
+
+        MXVal_.PutString(Atribute)
+        Attr.SetValue(MXVal_)
+
+        Instance.Save()
+        Instance.CheckIn()
     End Sub
 
     ''' <summary>
