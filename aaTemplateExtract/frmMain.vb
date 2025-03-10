@@ -438,7 +438,7 @@ Public Class frmMain
         End Try
     End Sub
 
-    Private Sub añadir_Mapeado(InstancesData)
+Private Sub añadir_Mapeado(InstancesData)
         Dim i As Integer = 0
 
         Refres_Instances(InstancesData.Count)
@@ -450,7 +450,6 @@ Public Class frmMain
             ' Buscar los TextBox dentro de cada GroupBox por Tag
             Dim txtNombreInstancia As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "NombreInstancia")
             Dim txtPlantilla As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "Plantilla")
-            Dim txtMapeado As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = ArrayAttributes(0))
 
             If Not String.IsNullOrWhiteSpace(InstancesData(i).InstanceName) Then
                 txtNombreInstancia.Text = InstancesData(i).InstanceName
@@ -458,10 +457,21 @@ Public Class frmMain
             If Not String.IsNullOrWhiteSpace(InstancesData(i).InstanceTemplate) Then
                 txtPlantilla.Text = InstancesData(i).InstanceTemplate
             End If
-            For Each attr In InstancesData(i).InstanceMap
-                If Not String.IsNullOrWhiteSpace(attr) Then
-                    txtMapeado.AppendText(attr & Environment.NewLine) ' Agrega cada atributo con un salto de línea
-                End If
+
+            For Each attr In InstancesData(i).InstanceAloneAttr
+                For Each att In LoneAttributes
+                    Dim txtbox As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = att)
+                    txtbox.Text = attr
+                Next
+            Next
+
+            For Each attr In InstancesData(i).InstanceArrayAttr
+                For Each att In ArrayAttributes
+                    Dim txtbox As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = att)
+                    For Each lblattr In attr
+                        txtbox.AppendText(lblattr & Environment.NewLine)
+                    Next
+                Next
             Next
             i = i + 1
         Next
