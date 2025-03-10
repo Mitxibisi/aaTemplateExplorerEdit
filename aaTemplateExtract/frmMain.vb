@@ -468,15 +468,18 @@ Private Sub añadir_Mapeado(InstancesData)
         txtbox.Text = attr
     End If
 Next
-            For Each attr In InstancesData(i).InstanceArrayAttr
-                For Each att In ArrayAttributes
-                    Dim txtbox As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = att)
-                    For Each lblattr In attr
-                        txtbox.AppendText(lblattr & Environment.NewLine)
-                    Next
-                Next
-            Next
-            i = i + 1
+            For index As Integer = 0 To Math.Min(InstancesData(i).InstanceArrayAttr.Count, ArrayAttributes.Count) - 1
+    Dim att As String = ArrayAttributes(index)
+    Dim attrList As List(Of String) = InstancesData(i).InstanceArrayAttr(index)
+    
+    ' Buscar el TextBox correspondiente por Tag
+    Dim txtbox As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = att)
+    If txtbox IsNot Nothing Then
+        txtbox.Clear() ' Limpiar el contenido anterior
+        For Each lblattr In attrList
+            txtbox.AppendText(lblattr & Environment.NewLine)
         Next
+    End If
+Next
     End Sub
 End Class
