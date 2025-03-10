@@ -458,13 +458,16 @@ Private Sub añadir_Mapeado(InstancesData)
                 txtPlantilla.Text = InstancesData(i).InstanceTemplate
             End If
 
-            For Each attr In InstancesData(i).InstanceAloneAttr
-                For Each att In LoneAttributes
-                    Dim txtbox As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = att)
-                    txtbox.Text = attr
-                Next
-            Next
-
+  For index As Integer = 0 To Math.Min(InstancesData(i).InstanceAloneAttr.Count, LoneAttributes.Count) - 1
+    Dim att As String = LoneAttributes(index)
+    Dim attr As String = InstancesData(i).InstanceAloneAttr(index)
+    
+    ' Buscar el TextBox por el Tag correspondiente
+    Dim txtbox As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = att)
+    If txtbox IsNot Nothing Then
+        txtbox.Text = attr
+    End If
+Next
             For Each attr In InstancesData(i).InstanceArrayAttr
                 For Each att In ArrayAttributes
                     Dim txtbox As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = att)
