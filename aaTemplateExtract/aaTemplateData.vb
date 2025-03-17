@@ -1,25 +1,4 @@
-﻿'The MIT License (MIT)
-'
-'Copyright (c) 2014 Eliot Landrum
-'
-'Permission is hereby granted, free of charge, to any person obtaining a copy of
-'this software and associated documentation files (the "Software"), to deal in
-'the Software without restriction, including without limitation the rights to
-'use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-'the Software, and to permit persons to whom the Software is furnished to do so,
-'subject to the following conditions:
-'
-'The above copyright notice and this permission notice shall be included in all
-'copies or substantial portions of the Software.
-'
-'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-'IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-'FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-'COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-'IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-'CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Imports System.Xml.Serialization
+﻿Imports System.Xml.Serialization
 
 ''' <summary>
 ''' Stores ArchestrA Galaxy template data in an XML serializable format.
@@ -80,10 +59,10 @@ Public Module aaTemplateData
     ''' Discrete Field Attribute data structure.
     ''' </summary>
     ''' <remarks></remarks>
-    <Serializable()> _
+    <Serializable()>
     Public Class aaFieldAttributeDiscrete
-        <XmlAttribute("name")> Public Name As String
-        <XmlAttribute("TemplateName")> Public TemplateName As String
+        Public Name As String
+        Public TemplateName As String
         Public Description As String
         Public Historized As String
         Public Events As String
@@ -114,8 +93,8 @@ Public Module aaTemplateData
     ''' </summary>
     <Serializable()>
     Public Class aaFieldAttributeAnalog
-        <XmlAttribute("name")> Public Name As String
-        <XmlAttribute("TemplateName")> Public TemplateName As String
+        Public Name As String
+        Public TemplateName As String
         Public Description As String
         Public Historized As String
         Public Events As String
@@ -142,14 +121,9 @@ Public Module aaTemplateData
 
     End Class
 
-    <XmlRoot("FieldAttributes")>
     Public Class FieldAttributesContainer
-        <XmlArray("DiscreteAttributes")>
-        <XmlArrayItem("Attribute")>
         Public Property DiscreteAttributes As List(Of aaFieldAttributeDiscrete)
 
-        <XmlArray("AnalogAttributes")>
-        <XmlArrayItem("Attribute")>
         Public Property AnalogAttributes As List(Of aaFieldAttributeAnalog)
 
         Public Sub New()
