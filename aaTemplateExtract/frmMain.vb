@@ -14,6 +14,7 @@ Public Class frmMain
     Public ArrayAttributes As String() = {}
     Public LogBox As ListBox
 
+    ' ------- Generales ----------
     Public Sub New()
         ' This call is required by the designer.
         InitializeComponent()
@@ -43,6 +44,7 @@ Public Class frmMain
         refreshGalaxyInfo(cmboGalaxyList.SelectedValue)
 
         Refres_Instances(1)
+        Refresh_TemplateAttr()
 
         restore_configdata()
 
@@ -52,6 +54,106 @@ Public Class frmMain
 
     End Sub
 
+    Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        My.Settings.CSVDir = txtDirecc.Text
+        My.Settings.CSVTAGS = txtTags.Text
+        My.Settings.InstanceNameIndex = txtIname.Text
+        My.Settings.InstanceTemplateIndex = txtItemplate.Text
+        My.Settings.AloneAttributes = txtAtributes.Text
+        My.Settings.ArrayAttributes = txtArrayAtributes.Text
+        My.Settings.Save()
+        My.Settings.Reload()
+    End Sub
+
+    Private Sub restore_configdata()
+        txtItemplate.Text = My.Settings.InstanceTemplateIndex
+        txtTags.Text = My.Settings.CSVTAGS
+        txtIname.Text = My.Settings.InstanceNameIndex
+        txtArrayAtributes.Text = My.Settings.ArrayAttributes
+        txtAtributes.Text = My.Settings.AloneAttributes
+        txtDirecc.Text = My.Settings.CSVDir
+    End Sub
+
+
+    ' ------- Pantalla Exportar Plantillas -------
+    Private Sub linkLblSelectAll_Click(sender As Object, e As EventArgs) Handles linkLblSelectAll.Click
+        For x = 1 To (lstTemplates.Items.Count - 1)
+            lstTemplates.SetSelected(x, True)
+        Next x
+    End Sub
+
+    Private Sub linkLblSelectNone_Click(sender As Object, e As EventArgs) Handles linkLblSelectNone.Click
+        For x = 1 To (lstTemplates.Items.Count - 1)
+            lstTemplates.SetSelected(x, False)
+        Next x
+    End Sub
+
+    Private Sub btnBrowseFolders_Click(sender As Object, e As EventArgs) Handles btnBrowseFolders.Click
+        If dlgFolderBrowser.ShowDialog() = DialogResult.OK Then
+            ExportFolder = dlgFolderBrowser.SelectedPath
+            lblFolderPath.Text = ExportFolder
+
+            If lstTemplates.SelectedItems.Count > 0 And ExportFolder IsNot Nothing And aaTemplateExtract.loggedIn Then
+                btnExport.Enabled = True
+            Else
+                btnExport.Enabled = False
+            End If
+        End If
+    End Sub
+
+    Private Sub btnRefreshGalaxies_Click(sender As Object, e As EventArgs) Handles btnRefreshGalaxies.Click
+        lblStatus.Text = "Refreshing Available Galaxies"
+        clearGalaxyInfo()
+
+        ' get the list of Galaxies from the local node and fill the combo box with the collection
+        cmboGalaxyList.DataSource = aaTemplateExtract.getGalaxies(txtNodeName.Text)
+
+        ' do any UI clean up work that might be needed when the galaxy name changes
+        refreshGalaxyInfo(cmboGalaxyList.SelectedValue)
+        lblStatus.Text = ""
+    End Sub
+
+    Private Sub btnExport_Click(sender As Object, e As EventArgs) Handles btnExport.Click
+
+        Dim y As Integer
+        y = lstTemplates.SelectedItems.Count - 1
+        Dim TemplateNames(0 To y) As String
+
+        Dim x As Integer = 0
+        For Each Template In lstTemplates.SelectedItems
+            TemplateNames(x) = Template
+            x += 1
+        Next
+
+        lblStatus.Text = "Exporting " & lstTemplates.SelectedItems.Count.ToString & " Templates"
+
+        ExportTemplatesToFile(ExportFolder, TemplateNames, ProgressBar1)
+
+        lblStatus.Text = "Archivo CSV generado"
+
+    End Sub
+
+    Private Sub btnLogin_Click(sender As Object, e As EventArgs) Handles btnLogin.Click
+        lblStatus.Text = "Logging in"
+
+        refreshGalaxyInfo(cmboGalaxyList.SelectedValue)
+
+        If aaTemplateExtract.login(txtUserInput.Text, txtPwdInput.Text) >= 0 Then
+            lblStatus.Text = "Logged In " & cmboGalaxyList.Text & " Wich User " & txtUserInput.Text
+        Else
+            lblStatus.Text = "Error logging in"
+        End If
+
+    End Sub
+
+    Private Sub btnRefreshTemplates_Click(sender As Object, e As EventArgs) Handles btnRefreshTemplates.Click
+        lblStatus.Text = "Refreshing Template List"
+        lstTemplates.DataSource = aaTemplateExtract.getTemplates(chkHideBaseTemplates.CheckState)
+        lblStatus.Text = ""
+    End Sub
+
+
+    ' ------- Pantalla Exportar Plantillas Funciones -------
     Private Sub cmboGalaxyList_SelectionChangeCommitted(ByVal sender As Object, ByVal e As EventArgs) Handles cmboGalaxyList.SelectionChangeCommitted
         Dim senderComboBox As ComboBox = CType(sender, ComboBox)
 
@@ -132,89 +234,127 @@ Public Class frmMain
         End Try
     End Sub
 
-    Private Sub linkLblSelectAll_Click(sender As Object, e As EventArgs) Handles linkLblSelectAll.Click
-        For x = 1 To (lstTemplates.Items.Count - 1)
-            lstTemplates.SetSelected(x, True)
-        Next x
+
+    ' ------- Pantallas de Instancias y Configuraciones Instancias -------
+    ' ------- Pantallas Configuraciones Instancias -------
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        My.Settings.Reset()
+        My.Settings.Save()
+        restore_configdata()
     End Sub
 
-    Private Sub linkLblSelectNone_Click(sender As Object, e As EventArgs) Handles linkLblSelectNone.Click
-        For x = 1 To (lstTemplates.Items.Count - 1)
-            lstTemplates.SetSelected(x, False)
-        Next x
-    End Sub
+    Private Sub btnLoadData_Click(sender As Object, e As EventArgs) Handles btnLoadData.Click
+        Try
+            Dim openFileDialog As New OpenFileDialog()
+            openFileDialog.Filter = "Archivos MLSM y XLSX (*.mlsm;*.xlsx)|*.mlsm;*.xlsx"
+            openFileDialog.Title = "Seleccionar un archivo"
 
-    Private Sub btnBrowseFolders_Click(sender As Object, e As EventArgs) Handles btnBrowseFolders.Click
-        If dlgFolderBrowser.ShowDialog() = DialogResult.OK Then
-            ExportFolder = dlgFolderBrowser.SelectedPath
-            lblFolderPath.Text = ExportFolder
+            If openFileDialog.ShowDialog() = DialogResult.OK Then
+                ImportExcel = openFileDialog.FileName
 
-            If lstTemplates.SelectedItems.Count > 0 And ExportFolder IsNot Nothing And aaTemplateExtract.loggedIn Then
-                btnExport.Enabled = True
-            Else
-                btnExport.Enabled = False
+                Dim LoneAttributesInteger As New List(Of Integer)()
+                Dim ArrayAttributesInteger As New List(Of Integer)()
+
+                For Each attr In LoneAttributes
+                    Dim txtloneattr As TextBox = EditAttributes.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Name.ToString() = "txt_" & attr)
+                    Dim value As Integer
+                    If Integer.TryParse(txtloneattr?.Text, value) Then
+                        LoneAttributesInteger.Add(value.ToString())
+                    Else
+                        LoneAttributesInteger.Add("10000")
+                    End If
+                Next
+
+                For Each attr In ArrayAttributes
+                    Dim txtloneattr As TextBox = EditAttributes.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Name.ToString() = "txt_" & attr)
+                    Dim value As Integer
+                    If Integer.TryParse(txtloneattr?.Text, value) Then
+                        ArrayAttributesInteger.Add(value.ToString())
+                    Else
+                        ArrayAttributesInteger.Add("10000")
+                    End If
+                Next
+
+                Dim InstancesData = aaExcelData.CargarDatosMapeado(ImportExcel, Integer.Parse(txtIname.Text), Integer.Parse(txtItemplate.Text), LoneAttributesInteger, ArrayAttributesInteger, txtTags.Text, txtDirecc.Text, CheckBox1.Checked, CheckBox2.Checked, txtestados.Text, txtordenes.Text)
+                añadir_Mapeado(InstancesData)
             End If
+        Catch y As Exception
+            LogBox.Items.Add(y)
+        End Try
+    End Sub
+
+    Private Sub txtAtributes_TextChanged(sender As Object, e As EventArgs) Handles txtAtributes.TextChanged, txtArrayAtributes.TextChanged
+        Refres_Instances()
+        addExcelData(LoneAttributes, ArrayAttributes)
+    End Sub
+
+    Private Sub txtTemplateData_TextChanged(sender As Object, e As EventArgs) Handles txtTemplateData.TextChanged
+        Dim AttrList As New List(Of String)()
+        Dim template = txtTemplateData.Text
+
+        AttrList = aaTemplateExtract.getTemplateAttributes(template)
+
+        ' Limpiar ComboBox antes de añadir nuevos datos
+        ComboBox1.Items.Clear()
+
+        If AttrList IsNot Nothing AndAlso AttrList.Count > 0 AndAlso AttrList(0) <> "BadTemplate" Then
+            For Each Attr In AttrList
+                If Not ComboBox1.Items.Contains(Attr) Then
+                    ComboBox1.Items.Add(Attr)
+                End If
+            Next
         End If
     End Sub
 
-    Private Sub btnRefreshGalaxies_Click(sender As Object, e As EventArgs) Handles btnRefreshGalaxies.Click
-        lblStatus.Text = "Refreshing Available Galaxies"
-        clearGalaxyInfo()
 
-        ' get the list of Galaxies from the local node and fill the combo box with the collection
-        cmboGalaxyList.DataSource = aaTemplateExtract.getGalaxies(txtNodeName.Text)
+    ' ------- Pantallas Instancias -------
+    Private Sub btnDeploy_Click(sender As Object, e As EventArgs) Handles btnDeploy.Click
+        Dim Cascade As Boolean = False
+        ' Contar el total de GroupBox en TabPage2
+        Dim totalGroupBoxes As Integer = TPInstances.Controls.OfType(Of GroupBox)().Count()
+        For Each grupo As GroupBox In TPInstances.Controls.OfType(Of GroupBox)()
+            Dim i As Integer
+            i = i + 1
+            lblStatus.Text = "Deploy Instance Number " & i & "/" & totalGroupBoxes
+            ' Buscar los TextBox dentro de cada GroupBox por Tag
+            Dim txtNombreInstancia As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "NombreInstancia")
+            Dim CCascade As CheckBox = TPInstances.Controls.OfType(Of CheckBox)().FirstOrDefault(Function(txt) txt.Name.ToString() = "cbCascade")
+            Cascade = (CCascade IsNot Nothing AndAlso CCascade.Checked)
 
-        ' do any UI clean up work that might be needed when the galaxy name changes
-        refreshGalaxyInfo(cmboGalaxyList.SelectedValue)
-        lblStatus.Text = ""
-    End Sub
-
-    Private Sub btnExport_Click(sender As Object, e As EventArgs) Handles btnExport.Click
-
-        Dim y As Integer
-        y = lstTemplates.SelectedItems.Count - 1
-        Dim TemplateNames(0 To y) As String
-
-        Dim x As Integer = 0
-        For Each Template In lstTemplates.SelectedItems
-            TemplateNames(x) = Template
-            x += 1
+            ' Verificar que todos los campos existen antes de llamar a la función
+            If txtNombreInstancia IsNot Nothing Then
+                aaTemplateExtract.deployUndeployInstance(txtNombreInstancia.Text, Cascade, 0)
+            End If
         Next
-
-        lblStatus.Text = "Exporting " & lstTemplates.SelectedItems.Count.ToString & " Templates"
-
-        exportTemplatesToFile(ExportFolder, TemplateNames, ProgressBar1)
-
-        lblStatus.Text = "Archivo CSV generado"
-
-    End Sub
-
-    Private Sub btnLogin_Click(sender As Object, e As EventArgs) Handles btnLogin.Click
-        lblStatus.Text = "Logging in"
-
-        refreshGalaxyInfo(cmboGalaxyList.SelectedValue)
-
-        If aaTemplateExtract.login(txtUserInput.Text, txtPwdInput.Text) >= 0 Then
-            lblStatus.Text = "Logged In " & cmboGalaxyList.Text & " Wich User " & txtUserInput.Text
-        Else
-            lblStatus.Text = "Error logging in"
-        End If
-
-    End Sub
-
-    Private Sub btnRefreshTemplates_Click(sender As Object, e As EventArgs) Handles btnRefreshTemplates.Click
-        lblStatus.Text = "Refreshing Template List"
-        lstTemplates.DataSource = aaTemplateExtract.getTemplates(chkHideBaseTemplates.CheckState)
         lblStatus.Text = ""
+        MessageBox.Show("Operacion Finalizada")
+    End Sub
+
+    Private Sub btnUndeploy_Click(sender As Object, e As EventArgs) Handles btnUndeploy.Click
+        Dim totalGroupBoxes As Integer = TPInstances.Controls.OfType(Of GroupBox)().Count()
+        For Each grupo As GroupBox In TPInstances.Controls.OfType(Of GroupBox)()
+            Dim i As Integer
+            i = i + 1
+            lblStatus.Text = "UnDeploy Instance Number " & i & "/" & totalGroupBoxes
+            ' Buscar los TextBox dentro de cada GroupBox por Tag
+            Dim txtNombreInstancia As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "NombreInstancia")
+
+            ' Verificar que todos los campos existen antes de llamar a la función
+            If txtNombreInstancia IsNot Nothing Then
+                aaTemplateExtract.deployUndeployInstance(txtNombreInstancia.Text, False, 1)
+            End If
+        Next
+        lblStatus.Text = ""
+        MessageBox.Show("Operacion Finalizada")
     End Sub
 
     Private Sub btnCreateInstance_Click() Handles btnNewInstance.Click
         Dim LoneAttributesText As New List(Of String)()
         Dim ArrayAttributesText As New List(Of String)()
 
-        ' Contar el total de GroupBox en TabPage2
-        Dim totalGroupBoxes As Integer = TabPage2.Controls.OfType(Of GroupBox)().Count()
-        For Each grupo As GroupBox In TabPage2.Controls.OfType(Of GroupBox)()
+        ' Contar el total de GroupBox en TPInstances
+        Dim totalGroupBoxes As Integer = TPInstances.Controls.OfType(Of GroupBox)().Count()
+        For Each grupo As GroupBox In TPInstances.Controls.OfType(Of GroupBox)()
             LoneAttributesText.Clear()
             ArrayAttributesText.Clear()
             Dim i As Integer
@@ -223,7 +363,7 @@ Public Class frmMain
             ' Buscar los TextBox dentro de cada GroupBox por Tag
             Dim txtPlantilla As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "Plantilla")
             Dim txtNombreInstancia As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "NombreInstancia")
-            Dim txtArea As TextBox = TabPage2.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "Area")
+            Dim txtArea As TextBox = TPInstances.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "Area")
 
             For Each attr In LoneAttributes
                 Dim txtloneattr As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = attr)
@@ -250,6 +390,8 @@ Public Class frmMain
         Refres_Instances()
     End Sub
 
+
+    ' ------- Pantallas de Instancias Funciones -------
     Private Sub Refres_Instances(Optional ByVal instances As Integer = 0)
         Dim lastTextBoxMultiple As Boolean = False
         Dim numInstancias As Integer
@@ -257,14 +399,14 @@ Public Class frmMain
         UpdateAttr()
 
         ' Limpiar campos previos, pero NO el NumericUpDown
-        For Each control As Control In TabPage2.Controls
+        For Each control As Control In TPInstances.Controls
             If Not control.Name = "NumericUpDown2" Then
                 control.Dispose() ' Eliminar todos los controles excepto el NumericUpDown
             End If
         Next
 
         ' Verificar si el NumericUpDown ya existe
-        Dim numInstancesSelector As NumericUpDown = TryCast(TabPage2.Controls("NumericUpDown2"), NumericUpDown)
+        Dim numInstancesSelector As NumericUpDown = TryCast(TPInstances.Controls("NumericUpDown2"), NumericUpDown)
 
         ' Si no existe, crear uno nuevo
         If numInstancesSelector Is Nothing Then
@@ -308,12 +450,12 @@ Public Class frmMain
         areaTextBox.Location = New Point(50, 40)
         areaTextBox.Tag = "Area"
 
-        TabPage2.Controls.Clear()
+        TPInstances.Controls.Clear()
 
-        TabPage2.Controls.Add(btnSetInstances)
-        TabPage2.Controls.Add(numInstancesSelector)
-        TabPage2.Controls.Add(areaEtiqueta)
-        TabPage2.Controls.Add(areaTextBox)
+        TPInstances.Controls.Add(btnSetInstances)
+        TPInstances.Controls.Add(numInstancesSelector)
+        TPInstances.Controls.Add(areaEtiqueta)
+        TPInstances.Controls.Add(areaTextBox)
 
         ' Definir nombres de los campos y sus Tags
         Dim nombresAtributes As List(Of String) = New List(Of String) From {"Plantilla", "Nombre Instancia"}
@@ -342,7 +484,7 @@ Public Class frmMain
             Dim grupo As New GroupBox()
             Dim Height As Integer = 84
             grupo.Text = "Instancia " & (i + 1)
-            grupo.Width = TabPage2.Width - 20
+            grupo.Width = TPInstances.Width - 20
             If Not String.IsNullOrWhiteSpace(LoneAttributes(0)) Then
                 Height = Height + (LoneAttributes.Length * 30)
             End If
@@ -392,7 +534,7 @@ Public Class frmMain
             Next
 
             ' Agregar el GroupBox al TabPage
-            TabPage2.Controls.Add(grupo)
+            TPInstances.Controls.Add(grupo)
         Next
 
         ' Crear botón inferior para procesar instancias
@@ -406,7 +548,7 @@ Public Class frmMain
         AddHandler btnProcessInstances.Click, AddressOf btnCreateInstance_Click
 
         ' Agregar botón a TabPage
-        TabPage2.Controls.Add(btnProcessInstances)
+        TPInstances.Controls.Add(btnProcessInstances)
 
         ' Crear botón inferior para procesar instancias
         Dim btnDeployInstances As New Button()
@@ -417,7 +559,7 @@ Public Class frmMain
 
         ' Agregar evento al botón para procesar instancias
         AddHandler btnDeployInstances.Click, AddressOf btnDeploy_Click
-        TabPage2.Controls.Add(btnDeployInstances)
+        TPInstances.Controls.Add(btnDeployInstances)
 
         ' Crear botón inferior para procesar instancias
         Dim btnUnDeployInstances As New Button()
@@ -434,48 +576,8 @@ Public Class frmMain
 
         AddHandler btnUnDeployInstances.Click, AddressOf btnUndeploy_Click
 
-        TabPage2.Controls.Add(btnUnDeployInstances)
-        TabPage2.Controls.Add(chcmark)
-    End Sub
-
-    Private Sub btnLoadData_Click(sender As Object, e As EventArgs) Handles btnLoadData.Click
-        Try
-            Dim openFileDialog As New OpenFileDialog()
-            openFileDialog.Filter = "Archivos MLSM y XLSX (*.mlsm;*.xlsx)|*.mlsm;*.xlsx"
-            openFileDialog.Title = "Seleccionar un archivo"
-
-            If openFileDialog.ShowDialog() = DialogResult.OK Then
-                ImportExcel = openFileDialog.FileName
-
-                Dim LoneAttributesInteger As New List(Of Integer)()
-                Dim ArrayAttributesInteger As New List(Of Integer)()
-
-                For Each attr In LoneAttributes
-                    Dim txtloneattr As TextBox = EditAttributes.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Name.ToString() = "txt_" & attr)
-                    Dim value As Integer
-                    If Integer.TryParse(txtloneattr?.Text, value) Then
-                        LoneAttributesInteger.Add(value.ToString())
-                    Else
-                        LoneAttributesInteger.Add("10000")
-                    End If
-                Next
-
-                For Each attr In ArrayAttributes
-                    Dim txtloneattr As TextBox = EditAttributes.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Name.ToString() = "txt_" & attr)
-                    Dim value As Integer
-                    If Integer.TryParse(txtloneattr?.Text, value) Then
-                        ArrayAttributesInteger.Add(value.ToString())
-                    Else
-                        ArrayAttributesInteger.Add("10000")
-                    End If
-                Next
-
-                Dim InstancesData = aaExcelData.CargarDatosMapeado(ImportExcel, Integer.Parse(txtIname.Text), Integer.Parse(txtItemplate.Text), LoneAttributesInteger, ArrayAttributesInteger, txtTags.Text, txtDirecc.Text, CheckBox1.Checked, CheckBox2.Checked, txtestados.Text, txtordenes.Text)
-                añadir_Mapeado(InstancesData)
-            End If
-        Catch y As Exception
-            LogBox.Items.Add(y)
-        End Try
+        TPInstances.Controls.Add(btnUnDeployInstances)
+        TPInstances.Controls.Add(chcmark)
     End Sub
 
     Public Sub UpdateAttr()
@@ -488,7 +590,7 @@ Public Class frmMain
 
         Refres_Instances(InstancesData.Count)
 
-        For Each grupo As GroupBox In TabPage2.Controls.OfType(Of GroupBox)()
+        For Each grupo As GroupBox In TPInstances.Controls.OfType(Of GroupBox)()
             ' Verificar que el índice i no exceda el tamaño de InstancesData
             If i >= InstancesData.Count Then Exit For
 
@@ -539,24 +641,6 @@ Public Class frmMain
         Next
     End Sub
 
-    Private Sub txtTemplateData_TextChanged(sender As Object, e As EventArgs) Handles txtTemplateData.TextChanged
-        Dim AttrList As New List(Of String)()
-        Dim template = txtTemplateData.Text
-
-        AttrList = aaTemplateExtract.getTemplateAttributes(template)
-
-        ' Limpiar ComboBox antes de añadir nuevos datos
-        ComboBox1.Items.Clear()
-
-        If AttrList IsNot Nothing AndAlso AttrList.Count > 0 AndAlso AttrList(0) <> "BadTemplate" Then
-            For Each Attr In AttrList
-                If Not ComboBox1.Items.Contains(Attr) Then
-                    ComboBox1.Items.Add(Attr)
-                End If
-            Next
-        End If
-    End Sub
-
     Private Sub addExcelData(Mylist1 As String(), Mylist2 As String())
         ' Limpiar los controles previos en el Panel
         EditAttributes.Controls.Clear()
@@ -573,11 +657,6 @@ Public Class frmMain
 
         ' Habilitar el scroll si es necesario
         EditAttributes.AutoScroll = True
-End Sub
-
-    Private Sub txtAtributes_TextChanged(sender As Object, e As EventArgs) Handles txtAtributes.TextChanged, txtArrayAtributes.TextChanged
-        Refres_Instances()
-        addExcelData(LoneAttributes, ArrayAttributes)
     End Sub
 
     Function AddControlsFromList(MyList As String(), startY As Integer, spacing As Integer)
@@ -605,73 +684,184 @@ End Sub
         Return startY
     End Function
 
-    Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
-        My.Settings.CSVDir = txtDirecc.Text
-        My.Settings.CSVTAGS = txtTags.Text
-        My.Settings.InstanceNameIndex = txtIname.Text
-        My.Settings.InstanceTemplateIndex = txtItemplate.Text
-        My.Settings.AloneAttributes = txtAtributes.Text
-        My.Settings.ArrayAttributes = txtArrayAtributes.Text
-        My.Settings.Save()
-        My.Settings.Reload()
-    End Sub
 
-    Private Sub restore_configdata()
-        txtItemplate.Text = My.Settings.InstanceTemplateIndex
-        txtTags.Text = My.Settings.CSVTAGS
-        txtIname.Text = My.Settings.InstanceNameIndex
-        txtArrayAtributes.Text = My.Settings.ArrayAttributes
-        txtAtributes.Text = My.Settings.AloneAttributes
-        txtDirecc.Text = My.Settings.CSVDir
-    End Sub
-
-    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
-        My.Settings.Reset()
-        My.Settings.Save()
-        restore_configdata()
-    End Sub
-
-    Private Sub btnDeploy_Click(sender As Object, e As EventArgs) Handles btnDeploy.Click
-        Dim Cascade As Boolean = False
-        ' Contar el total de GroupBox en TabPage2
-        Dim totalGroupBoxes As Integer = TabPage2.Controls.OfType(Of GroupBox)().Count()
-        For Each grupo As GroupBox In TabPage2.Controls.OfType(Of GroupBox)()
-            Dim i As Integer
-            i = i + 1
-            lblStatus.Text = "Deploy Instance Number " & i & "/" & totalGroupBoxes
-            ' Buscar los TextBox dentro de cada GroupBox por Tag
-            Dim txtNombreInstancia As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "NombreInstancia")
-            Dim CCascade As CheckBox = TabPage2.Controls.OfType(Of CheckBox)().FirstOrDefault(Function(txt) txt.Name.ToString() = "cbCascade")
-            Cascade = (CCascade IsNot Nothing AndAlso CCascade.Checked)
-
-            ' Verificar que todos los campos existen antes de llamar a la función
-            If txtNombreInstancia IsNot Nothing Then
-                aaTemplateExtract.deployUndeployInstance(txtNombreInstancia.Text, Cascade, 0)
-            End If
-        Next
-        lblStatus.Text = ""
-        MessageBox.Show("Operacion Finalizada")
-    End Sub
-
-    Private Sub btnUndeploy_Click(sender As Object, e As EventArgs) Handles btnUndeploy.Click
-        Dim totalGroupBoxes As Integer = TabPage2.Controls.OfType(Of GroupBox)().Count()
-        For Each grupo As GroupBox In TabPage2.Controls.OfType(Of GroupBox)()
-            Dim i As Integer
-            i = i + 1
-            lblStatus.Text = "UnDeploy Instance Number " & i & "/" & totalGroupBoxes
-            ' Buscar los TextBox dentro de cada GroupBox por Tag
-            Dim txtNombreInstancia As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = "NombreInstancia")
-
-            ' Verificar que todos los campos existen antes de llamar a la función
-            If txtNombreInstancia IsNot Nothing Then
-                aaTemplateExtract.deployUndeployInstance(txtNombreInstancia.Text, False, 1)
-            End If
-        Next
-        lblStatus.Text = ""
-        MessageBox.Show("Operacion Finalizada")
-    End Sub
-
+    ' ------- Pantalla Crear Plantilla -------
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnNewTemplate.Click
-        aaTemplateExtract.CreateTemplate(txtDTemplate.Text, txtNewTName.Text, txtValor1.Text, txtValueName.Text)
+        ' Atributos Discretos
+        Dim DiscFANames As New List(Of String)()
+        Dim DiscFADesc As New List(Of String)()
+        Dim DiscFAAlarmed As New List(Of Boolean)()
+        Dim DiscFAHistorized As New List(Of Boolean)()
+        Dim DiscFAEvents As New List(Of Boolean)()
+        Dim DiscLockFA As New List(Of List(Of Boolean))()
+
+        ' Atributos Analogicos
+        Dim AnalogFANames As New List(Of String)()
+        Dim AnalogFADesc As New List(Of String)()
+        Dim AnalogFAEngUnits As New List(Of String)()
+        Dim AnalogFAHistorized As New List(Of Boolean)()
+        Dim AnalogFAEvents As New List(Of Boolean)()
+        Dim AnalogFAEscalado As New List(Of Boolean)()
+        Dim AnalogLockFA As New List(Of List(Of Boolean))()
+
+        ' Extraccion Discretos (Se cambiara pero un mejor codigo mas expandible y manejable)
+        For Each grupo As GroupBox In TPDiscFA.Controls.OfType(Of GroupBox)()
+            Dim DiscLock As New List(Of Boolean)()
+            DiscLock.Add(False)
+            DiscLock.Add(GetCheckBox(grupo, "Disc_L_Descripcion"))
+            DiscLock.Add(GetCheckBox(grupo, "Disc_L_Alarmed"))
+            DiscLock.Add(GetCheckBox(grupo, "Disc_L_Historizado"))
+            DiscLock.Add(GetCheckBox(grupo, "Disc_L_Evento"))
+
+            DiscLockFA.Add(DiscLock)
+
+            DiscFANames.Add(GetTextBox(grupo, "Disc_Nombre"))
+            DiscFADesc.Add(GetTextBox(grupo, "Disc_Descripcion"))
+
+            DiscFAAlarmed.Add(GetCheckBox(grupo, "Disc_Alarmed"))
+            DiscFAHistorized.Add(GetCheckBox(grupo, "Disc_Historizado"))
+            DiscFAEvents.Add(GetCheckBox(grupo, "Disc_Evento"))
+        Next
+
+        ' Extraccion Analogicos (Se cambiara pero un mejor codigo mas expandible y manejable)
+        For Each grupo As GroupBox In TPFAAnalog.Controls.OfType(Of GroupBox)()
+            Dim AnalogLock As New List(Of Boolean)()
+            AnalogLock.Add(False)
+            AnalogLock.Add(GetCheckBox(grupo, "Analog_L_Descripcion"))
+            AnalogLock.Add(GetCheckBox(grupo, "Analog_L_Unidad"))
+            AnalogLock.Add(GetCheckBox(grupo, "Analog_L_Historizado"))
+            AnalogLock.Add(GetCheckBox(grupo, "Analog_L_Evento"))
+            AnalogLock.Add(GetCheckBox(grupo, "Analog_L_Escalado"))
+
+            AnalogLockFA.Add(AnalogLock)
+
+            AnalogFANames.Add(GetTextBox(grupo, "Analog_Nombre"))
+            AnalogFADesc.Add(GetTextBox(grupo, "Analog_Descripcion"))
+            AnalogFAEngUnits.Add(GetTextBox(grupo, "Analog_Unidad"))
+
+            AnalogFAHistorized.Add(GetCheckBox(grupo, "Analog_Historizado"))
+            AnalogFAEvents.Add(GetCheckBox(grupo, "Analog_Evento"))
+            AnalogFAEscalado.Add(GetCheckBox(grupo, "Analog_Escalado"))
+        Next
+
+        Dim UdasNames = txtValueName.Text.Split(",")
+        Dim UdasValue = txtValor1.Text.Split(",")
+
+        aaTemplateExtract.CreateTemplate(txtDTemplate.Text,
+                                         txtNewTName.Text,
+                                         UdasNames,
+                                         UdasValue,
+                                         DiscFANames,
+                                         AnalogFANames,
+                                         DiscFADesc,
+                                         AnalogFADesc,
+                                         AnalogFAEngUnits,
+                                         DiscFAAlarmed,
+                                         DiscFAHistorized,
+                                         AnalogFAHistorized,
+                                         DiscFAEvents,
+                                         AnalogFAEvents,
+                                         DiscLockFA,
+                                         AnalogFAEscalado,
+                                         AnalogLockFA)
+
     End Sub
+
+    Private Sub Refresh_TemplateAttr()
+        addControlsToTab("Disc", 2, TPDiscFA, {"Nombre", "Descripcion"}, {"Alarmed", "Historizado", "Evento"})
+        addControlsToTab("Analog", 2, TPFAAnalog, {"Nombre", "Descripcion", "Unidad"}, {"Historizado", "Evento", "Escalado"})
+    End Sub
+
+    Private Sub addControlsToTab(ByVal str As String, ByVal numInstancias As Integer, ByVal Page As TabPage, ByVal txtCampos As String(), ByVal txtCheckBox As String())
+        Page.Controls.Clear()
+
+        Dim nombresCampos As String() = txtCampos
+        Dim tagsCampos As String() = txtCampos
+        Dim tagsCheckbox As String() = txtCheckBox
+
+        ' Espaciado inicial
+        Dim yOffset As Integer = 10
+
+        For i As Integer = 0 To numInstancias - 1
+            ' Crear un GroupBox para cada instancia
+            Dim grupo As New GroupBox()
+            grupo.Text = "Attributo " & str & (i + 1)
+            grupo.Width = Page.Width - 20
+            grupo.Height = (((txtCampos.Count + txtCheckBox.Count) * 32))
+            grupo.Location = New Point(10, yOffset)
+
+            yOffset += grupo.Height + 10 ' Espaciado entre grupos
+
+            ' Añadir los campos dentro del grupo
+            Dim campoOffset As Integer = 20
+
+            For j As Integer = 0 To nombresCampos.Count - 1
+
+                ' Crear Label
+                Dim nuevaEtiqueta As New Label()
+                nuevaEtiqueta.Text = str & "_" & nombresCampos(j)
+                nuevaEtiqueta.Location = New Point(10, campoOffset)
+                nuevaEtiqueta.AutoSize = True
+
+                ' Crear TextBox
+                Dim nuevoTextBox As New TextBox()
+                nuevoTextBox.Width = 150
+                nuevoTextBox.Location = New Point(15 + nuevaEtiqueta.Width, campoOffset)
+                nuevoTextBox.Tag = str & "_" & tagsCampos(j)
+
+                ' Crear CheckBox
+                Dim nuevoCheckBox As New CheckBox()
+                nuevoCheckBox.Width = 150
+                nuevoCheckBox.Text = "Lock"
+                nuevoCheckBox.Location = New Point(25 + nuevaEtiqueta.Width + nuevoTextBox.Width, campoOffset)
+                nuevoCheckBox.Tag = str & "_L_" & tagsCampos(j)
+
+                grupo.Controls.Add(nuevoCheckBox)
+
+                ' Agregar controles al GroupBox
+                grupo.Controls.Add(nuevaEtiqueta)
+                grupo.Controls.Add(nuevoTextBox)
+
+                ' Ajustar campoOffset basado en el tamaño real del TextBox
+                campoOffset += nuevoTextBox.Height + 10 ' Espaciado base entre campos
+            Next
+
+            For j As Integer = 0 To tagsCheckbox.Count - 1
+
+                ' Crear TextBox
+                Dim nuevoCheckBox As New CheckBox()
+                nuevoCheckBox.Width = 150
+                nuevoCheckBox.Text = tagsCheckbox(j)
+                nuevoCheckBox.Location = New Point(150, campoOffset)
+                nuevoCheckBox.Tag = str & "_" & tagsCheckbox(j) ' ASIGNAR EL TAG CORRECTAMENTE
+
+                Dim nuevoLockCheckBox As New CheckBox()
+                nuevoLockCheckBox.Width = 150
+                nuevoLockCheckBox.Text = "Lock"
+                nuevoLockCheckBox.Location = New Point(nuevoCheckBox.Width + 125, campoOffset)
+                nuevoLockCheckBox.Tag = str & "_L_" & tagsCheckbox(j) ' ASIGNAR EL TAG CORRECTAMENTE
+
+                grupo.Controls.Add(nuevoLockCheckBox)
+                grupo.Controls.Add(nuevoCheckBox)
+
+                ' Ajustar campoOffset basado en el tamaño real del TextBox
+                campoOffset += nuevoCheckBox.Height + 1 ' Espaciado base entre campos
+            Next
+
+            ' Agregar el GroupBox al TabPage
+            Page.Controls.Add(grupo)
+        Next
+    End Sub
+
+
+    ' ------- Get Data -------
+    Private Function GetTextBox(ByVal grupo As GroupBox, ByVal Tag As String)
+        Dim txtValue As TextBox = grupo.Controls.OfType(Of TextBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = Tag)
+        Return txtValue.Text
+    End Function
+
+    Private Function GetCheckBox(ByVal grupo As GroupBox, ByVal Tag As String)
+        Dim cbValue As CheckBox = grupo.Controls.OfType(Of CheckBox)().FirstOrDefault(Function(txt) txt.Tag.ToString() = Tag)
+        Return cbValue.Checked
+    End Function
 End Class

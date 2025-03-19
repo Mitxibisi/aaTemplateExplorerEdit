@@ -63,15 +63,15 @@ Public Class aaExcelData
                 Dim tags = ObtenerDatosColumna(InstanceNameColumnIndex, worksheet, strname, csvIndex)
                 Dim direcciones = ObtenerDatosColumna(InstanceNameColumnIndex, worksheet, strname, csv1index)
 
-                For I As Integer = 1 To tags.Count - 1
+                For I As Integer = 0 To tags.Count - 1
                     Dim original As String = direcciones(I)
 
                     ' Aplicar las sustituciones como en la fórmula de Excel
                     original = original.Replace(".DBX", ",X") _
-                                   .Replace(".DBDINT", ",DINT") _
-                                   .Replace(".DBW", ",INT") _
-                                   .Replace(".DBB", ",BYTE") _
-                                   .Replace(".DBD", ",REAL")
+                                       .Replace(".DBDINT", ",DINT") _
+                                       .Replace(".DBW", ",INT") _
+                                       .Replace(".DBB", ",BYTE") _
+                                       .Replace(".DBD", ",REAL")
 
                     CSV.Add("""" & tags(I) & """" & "," & """" & original & """")
                 Next

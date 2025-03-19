@@ -6,10 +6,6 @@ Imports aaGRAccessApp
 ''' All the hard work is in this class, but aaTemplateData contains the actual data structure.
 ''' </summary>
 Public Class aaTemplateExtract
-
-    ' Author: Eliot Landrum <elandrum@stonetek.com>
-    ' Description: This class is the interface to GRAccess to communicate and pull data out of the Galaxy
-
     Public authMode As String
     Public showLogin As Boolean
     Public errorMessage As String
@@ -23,6 +19,7 @@ Public Class aaTemplateExtract
     Private grAccess As aaGRAccessApp.GRAccessApp
     Private myGalaxy As aaGRAccessApp.IGalaxy
 
+    ' ------- Galaxy ----------
     ''' <summary>
     ''' Initializes and sets up our GRAccess client app.
     ''' </summary>
@@ -123,6 +120,8 @@ Public Class aaTemplateExtract
 
     End Function
 
+
+    ' ------- Templates ----------
     ''' <summary>
     ''' Discovers all of the templates in this Galaxy.
     ''' </summary>
@@ -216,54 +215,24 @@ Public Class aaTemplateExtract
         Return templateData
     End Function
 
-    Public Function getTemplateAttributes(templatename As String) As List(Of String)
-        Dim templateList(0) As String
-        Dim gTemplates As aaGRAccessApp.IgObjects
-        Dim gTemplate As aaGRAccessApp.ITemplate
-        Dim gAttributes As aaGRAccess.IAttributes
-        Dim attrList As New List(Of String)()
+    Public Sub CreateTemplate(ByVal TemplateName As String,
+                              ByVal NewTemplateName As String,
+                              ByVal AttrName As String(),
+                              ByVal Valor As String(),
+                              ByVal DiscFANames As List(Of String),
+                              ByVal AnalogFANames As List(Of String),
+                              ByVal DiscFADesc As List(Of String),
+                              ByVal AnalogFADesc As List(Of String),
+                              ByVal AnalogFAEngUnits As List(Of String),
+                              ByVal DiscFAAlarmed As List(Of Boolean),
+                              ByVal DiscFAHistorized As List(Of Boolean),
+                              ByVal AnalogFAHistorized As List(Of Boolean),
+                              ByVal DiscFAEvents As List(Of Boolean),
+                              ByVal AnalogFAEvents As List(Of Boolean),
+                              ByVal DiscFALocks As List(Of List(Of Boolean)),
+                              ByVal AnalogFAScaled As List(Of Boolean),
+                              ByVal AnalogFALocks As List(Of List(Of Boolean)))
 
-        Try
-            If loggedIn Then
-                ' Convert the individual template name to an array. 
-                templateList(0) = templatename
-
-                ' Query the galaxy for this template's data
-                gTemplates = myGalaxy.QueryObjectsByName(aaGRAccessApp.EgObjectIsTemplateOrInstance.gObjectIsTemplate, templateList)
-                resultStatus = myGalaxy.CommandResult.Successful
-
-                If resultStatus AndAlso gTemplates IsNot Nothing AndAlso gTemplates.count > 0 Then
-                    gTemplate = CType(gTemplates(1), aaGRAccessApp.ITemplate)
-
-                    ' Get all of the Configurable Attributes
-                    gAttributes = gTemplate.Attributes
-
-                    ' Iterate correctly over attributes using index
-                    Dim prefixes As String() = {"Scr_" & "Src_"}
-                    For i As Integer = 1 To gAttributes.count
-                        Dim attr = gAttributes(i)
-                        If Not prefixes.Any(Function(p) attr.Name.StartsWith(p)) Then
-                            attrList.Add(attr.Name)
-                        End If
-                    Next
-
-                    Return attrList
-                Else
-                    attrList.Add("BadTemplate")
-                    Return attrList
-                End If
-            Else
-                attrList.Add("NotLoggedIn")
-                Return attrList
-            End If
-        Catch ex As Exception
-            MessageBox.Show("Error Ocurred: " & ex.Message & vbCrLf & ex.StackTrace)
-            attrList.Add("Error")
-            Return attrList
-        End Try
-    End Function
-
-    Public Sub CreateTemplate(ByVal TemplateName As String, ByVal NewTemplateName As String, ByVal AttrName As String, ByVal Valor As String)
         Try
             If loggedIn Then
                 Dim templateList(0) As String
@@ -279,74 +248,22 @@ Public Class aaTemplateExtract
                 Dim baseTemplate As aaGRAccessApp.ITemplate = CType(gTemplates(1), aaGRAccessApp.ITemplate)
                 Dim newTemplate As aaGRAccessApp.ITemplate = baseTemplate.CreateTemplate(NewTemplateName, True)
 
-                Dim attrs As aaGRAccessApp.IAttributes = newTemplate.Attributes
-
-                ' Check-Out para editar
-                newTemplate.CheckOut()
-
-                Dim UDOAttributes As IAttributes = newTemplate.ConfigurableAttributes
-                Dim UDOUserAttrDataAttribute As IAttribute = UDOAttributes("UserAttrData")
-                Dim DiscreteFieldAttribute As IAttribute
-                Dim AnalogFieldAttribute As IAttribute
-
-                Dim DiscreteFieldAttributeName As String = "Señal1"
-                Dim AnalogFieldAttributeName As String = "Señal2"
-
-                Dim MxVal As New MxValueClass()
-                Dim xmlString As String = "<AttrXML><DiscreteAttr Name=""" & DiscreteFieldAttributeName & """ /><AnalogAttr Name=""" & AnalogFieldAttributeName & """ /></AttrXML>"
-
-                MxVal.PutString(xmlString)
-                UDOUserAttrDataAttribute.SetValue(MxVal)
-
-                newTemplate.Save()
-
-                '' ---- Añadir un nuevo UDA ----
-                'newTemplate.AddUDA(
-                'AttrName,
-                'aaGRAccessApp.MxDataType.MxString,
-                'aaGRAccessApp.MxAttributeCategory.MxCategoryWriteable_USC_Lockable,
-                'aaGRAccessApp.MxSecurityClassification.MxSecurityOperate,
-                'False,
-                '0)
-
-                'newTemplate.Save()
-
-                ' Configurar los atributos como de costumbre
-                UDOAttributes = newTemplate.ConfigurableAttributes
-
-                DiscreteFieldAttribute = UDOAttributes(DiscreteFieldAttributeName & ".Input.InputSource")
-
-                Dim MXRef As IMxReference
-                MXRef = DiscreteFieldAttribute.value.GetMxReference()
-                MXRef.FullReferenceString = "---"
-
-                MxVal.PutMxReference(MXRef)
-                DiscreteFieldAttribute.SetValue(MxVal)
-
-                newTemplate.Save()
-
-                ' Configurar los atributos como de costumbre
-                UDOAttributes = newTemplate.ConfigurableAttributes
-                AnalogFieldAttribute = UDOAttributes(AnalogFieldAttributeName & ".Input.InputSource")
-
-                MXRef = AnalogFieldAttribute.value.GetMxReference()
-                MXRef.FullReferenceString = "---"
-
-                MxVal.PutMxReference(MXRef)
-                AnalogFieldAttribute.SetValue(MxVal)
-
-                newTemplate.Save()
-
-                '' Configurar el valor del nuevo atributo
-                'Dim newAttribute As aaGRAccessApp.IAttribute = UDOAttributes(AttrName)
-
-                'Dim attrValue As New aaGRAccessApp.MxValueClass()
-                'attrValue.PutString(Valor)
-                'newAttribute.SetValue(attrValue)
-
-                ' ---- Guardar y Check-In ----
-                newTemplate.Save()
-                newTemplate.CheckIn("Plantilla y atributos creados correctamente.")
+                AddNewTemAttr(newTemplate,
+                                AttrName,
+                                Valor,
+                                DiscFANames,
+                                AnalogFANames,
+                                DiscFADesc,
+                                AnalogFADesc,
+                                AnalogFAEngUnits,
+                                DiscFAAlarmed,
+                                DiscFAHistorized,
+                                AnalogFAHistorized,
+                                DiscFAEvents,
+                                AnalogFAEvents,
+                                DiscFALocks,
+                                AnalogFAScaled,
+                                AnalogFALocks)
 
                 Debug.WriteLine("Plantilla y atributos guardados y check-in realizado.")
             Else
@@ -357,6 +274,8 @@ Public Class aaTemplateExtract
         End Try
     End Sub
 
+
+    ' ------- Instances ----------
     Public Sub createInstance(ByVal TemplateName As String, ByVal InstanceName As String, ByVal AreaName As String, ByVal LoneAttrText As List(Of String), ByVal ArrayAttrText As List(Of String), AloneAttributes As String(), arrayAttributes As String())
         Dim templateList(1) As String
         Dim gTemplates As aaGRAccessApp.IgObjects
@@ -429,6 +348,8 @@ Public Class aaTemplateExtract
         End Try
     End Sub
 
+
+    ' ------- Instance Attributes ----------
     Private Sub AgregarElementosACfgMapeado(gAttributes As aaGRAccess.IAttributes, valores As String(), ArrayAttributes As String)
         Try
             Dim Attr As aaGRAccess.IAttribute = gAttributes.Item(ArrayAttributes)
@@ -505,22 +426,40 @@ Public Class aaTemplateExtract
         End Try
     End Sub
 
-    Private Sub ToMxValue(Atribute As String, gAttributes As aaGRAccess.IAttributes, Instance As aaGRAccessApp.IInstance, COMAtribute As String)
-        Try
-            Dim MXVal_ As aaGRAccess.MxValue = New aaGRAccess.MxValue()
-            Dim Attr As aaGRAccess.IAttribute = gAttributes.Item(COMAtribute)
 
-            If gAttributes.Item(COMAtribute) Is Nothing Then
-                frmMain.LogBox.Items.Add("El atributo " & COMAtribute & " no existe.")
-                Return
-            End If
-            MXVal_.PutString(Atribute)
+    ' ------- Template Attributes ----------
+    ''' <summary>
+    ''' Gets all of the Analog Field Attributes for a given template. 
+    ''' </summary>
+    ''' <param name="gAttributes">All of the Configurable Attributes that were found for this template.</param>
+    ''' <returns>A collection of all of the Analog Field Attributes using the aaFieldAttributeAnalog class.</returns>
+    ''' <remarks></remarks>
+    Private Function GetFieldAttributesAnalog(gAttributes As aaGRAccess.IAttributes) As Collection
+        Dim FieldAttributes As New Collection()
 
-            Attr.SetValue(MXVal_)
-        Catch ex As Exception
-            frmMain.LogBox.Items.Add(ex)
-        End Try
-    End Sub
+        ' A list of the Field Attributes are stored in an XML fragment in the UserAttrData attribute
+        Dim UserAttrData As XElement = XElement.Parse(gAttributes.Item("UserAttrData").value.GetString)
+
+        Dim attrList = UserAttrData.<DiscreteAttr>.Attributes("Name")
+
+        For Each attr In attrList
+            Dim attrName = attr.Value
+
+            ' Now, put all of the info together into one data set for this attribute
+            Dim AnalogAttrData = New aaFieldAttributeAnalog(attrName,
+                GetAttrString("Tagname", gAttributes),
+                GetAttrString(attrName + ".Desc", gAttributes),
+                GetAttrBoolean(attrName + ".Historized", gAttributes),
+                GetAttrBoolean(attrName + ".LogDataChangeEvent", gAttributes),
+                GetAttrBoolean(attrName + ".Alarmed", gAttributes),
+                GetAttrString(attrName + ".EngUnits", gAttributes))
+
+            ' Finally, add it to a (growing) collection of field attributes
+            FieldAttributes.Add(AnalogAttrData)
+        Next
+
+        Return FieldAttributes
+    End Function
 
     ''' <summary>
     ''' Gets all of the Discrete Field Attributes for a given template. 
@@ -555,38 +494,281 @@ Public Class aaTemplateExtract
         Return FieldAttributes
     End Function
 
-    ''' <summary>
-    ''' Gets all of the Analog Field Attributes for a given template. 
-    ''' </summary>
-    ''' <param name="gAttributes">All of the Configurable Attributes that were found for this template.</param>
-    ''' <returns>A collection of all of the Analog Field Attributes using the aaFieldAttributeAnalog class.</returns>
-    ''' <remarks></remarks>
-    Private Function GetFieldAttributesAnalog(gAttributes As aaGRAccess.IAttributes) As Collection
-        Dim FieldAttributes As New Collection()
+    Public Function getTemplateAttributes(templatename As String) As List(Of String)
+        Dim templateList(0) As String
+        Dim gTemplates As aaGRAccessApp.IgObjects
+        Dim gTemplate As aaGRAccessApp.ITemplate
+        Dim gAttributes As aaGRAccess.IAttributes
+        Dim attrList As New List(Of String)()
 
-        ' A list of the Field Attributes are stored in an XML fragment in the UserAttrData attribute
-        Dim UserAttrData As XElement = XElement.Parse(gAttributes.Item("UserAttrData").value.GetString)
+        Try
+            If loggedIn Then
+                ' Convert the individual template name to an array. 
+                templateList(0) = templatename
 
-        Dim attrList = UserAttrData.<DiscreteAttr>.Attributes("Name")
+                ' Query the galaxy for this template's data
+                gTemplates = myGalaxy.QueryObjectsByName(aaGRAccessApp.EgObjectIsTemplateOrInstance.gObjectIsTemplate, templateList)
+                resultStatus = myGalaxy.CommandResult.Successful
 
-        For Each attr In attrList
-            Dim attrName = attr.Value
+                If resultStatus AndAlso gTemplates IsNot Nothing AndAlso gTemplates.count > 0 Then
+                    gTemplate = CType(gTemplates(1), aaGRAccessApp.ITemplate)
 
-            ' Now, put all of the info together into one data set for this attribute
-            Dim AnalogAttrData = New aaFieldAttributeAnalog(attrName,
-                GetAttrString("Tagname", gAttributes),
-                GetAttrString(attrName + ".Desc", gAttributes),
-                GetAttrBoolean(attrName + ".Historized", gAttributes),
-                GetAttrBoolean(attrName + ".LogDataChangeEvent", gAttributes),
-                GetAttrBoolean(attrName + ".Alarmed", gAttributes),
-                GetAttrString(attrName + ".EngUnits", gAttributes))
+                    ' Get all of the Configurable Attributes
+                    gAttributes = gTemplate.Attributes
 
-            ' Finally, add it to a (growing) collection of field attributes
-            FieldAttributes.Add(AnalogAttrData)
+                    ' Iterate correctly over attributes using index
+                    Dim prefixes As String() = {"Scr_" & "Src_"}
+                    For i As Integer = 1 To gAttributes.count
+                        Dim attr = gAttributes(i)
+                        If Not prefixes.Any(Function(p) attr.Name.StartsWith(p)) Then
+                            attrList.Add(attr.Name)
+                        End If
+                    Next
+
+                    Return attrList
+                Else
+                    attrList.Add("BadTemplate")
+                    Return attrList
+                End If
+            Else
+                attrList.Add("NotLoggedIn")
+                Return attrList
+            End If
+        Catch ex As Exception
+            MessageBox.Show("Error Ocurred: " & ex.Message & vbCrLf & ex.StackTrace)
+            attrList.Add("Error")
+            Return attrList
+        End Try
+    End Function
+
+    Public Sub AddNewTemAttr(ByVal newTemplate As aaGRAccessApp.ITemplate,
+                             ByVal AttrName As String(), ByVal Valor As String(),
+                             ByVal DiscFANames As List(Of String),
+                             ByVal AnalogFANames As List(Of String),
+                             ByVal DiscFADesc As List(Of String),
+                             ByVal AnalogFADesc As List(Of String),
+                             ByVal AnalogFAEngUnits As List(Of String),
+                             ByVal DiscFAAlarmed As List(Of Boolean),
+                             ByVal DiscFAHistorized As List(Of Boolean),
+                             ByVal AnalogFAHistorized As List(Of Boolean),
+                             ByVal DiscFAEvents As List(Of Boolean),
+                             ByVal AnalogFAEvents As List(Of Boolean),
+                             ByVal DiscFALocks As List(Of List(Of Boolean)),
+                             ByVal AnalogFAScaled As List(Of Boolean),
+                             ByVal AnalogFALocks As List(Of List(Of Boolean)))
+
+        ' Check-Out para editar
+        newTemplate.CheckOut()
+
+        ' El orden de escritura es importante si intentas crear los UDA despues de los FA dara fallo, desconozco la razon pero al seguir el orden no da problemas.
+        createNewUDA(newTemplate, AttrName, Valor)
+
+        Dim UDOAttributes As IAttributes = newTemplate.Attributes
+        Dim UDOUserAttrDataAttribute As IAttribute = UDOAttributes("UserAttrData")
+        Dim MxVal As New MxValueClass()
+
+        Dim xmlString As String = "<AttrXML>"
+
+        For Each name In DiscFANames
+            xmlString &= "<DiscreteAttr Name=""" & name & """ />"
         Next
 
-        Return FieldAttributes
-    End Function
+        For Each name In AnalogFANames
+            xmlString &= "<AnalogAttr Name=""" & name & """ />"
+        Next
+
+        xmlString &= "</AttrXML>"
+
+        MxVal.PutString(xmlString)
+        UDOUserAttrDataAttribute.SetValue(MxVal)
+
+        newTemplate.Save()
+
+        Dim I As Integer = 0
+
+        If DiscFANames.Count <> 0 And DiscFANames(0) IsNot String.Empty Then
+            For Each name In DiscFANames
+                createNewDiscreteFA(newTemplate, name, "---", DiscFADesc(I), DiscFAAlarmed(I), DiscFAHistorized(I), DiscFAEvents(I), DiscFALocks(I))
+                I = I + 1
+            Next
+        End If
+
+        I = 0
+
+        If AnalogFANames.Count <> 0 And AnalogFANames(0) IsNot String.Empty Then
+            For Each name In AnalogFANames
+                createNewAnalogFA(newTemplate, name, "---", AnalogFADesc(I), AnalogFAEngUnits(I), AnalogFAHistorized(I), AnalogFAEvents(I), AnalogFAScaled(I), AnalogFALocks(I))
+                I = I + 1
+            Next
+        End If
+
+        ' ---- Guardar y Check-In ----
+        newTemplate.Save()
+        newTemplate.CheckIn("Plantilla y atributos creados correctamente.")
+    End Sub
+
+    Private Sub createNewDiscreteFA(ByVal NewTemplate As aaGRAccessApp.ITemplate,
+                                    ByVal FAName As String,
+                                    ByVal FAValue As String,
+                                    ByVal FADesc As String,
+                                    ByVal Alarmed As Boolean,
+                                    ByVal Historized As Boolean,
+                                    ByVal GenerateEvent As Boolean,
+                                    ByVal Locked As List(Of Boolean))
+
+        ' Configurar los atributos como de costumbre
+        Dim DiscreteFieldAttribute As IAttribute
+        Dim MxVal As New MxValueClass()
+        Dim UDOAttributes As IAttributes = NewTemplate.Attributes
+
+        Dim UDOAttributesList As String() = {".Input.InputSource", ".Desc", ".Alarmed", ".Historized", ".LogDataChangeEvent"}
+
+        Dim i As Integer = 0
+
+        For Each Name In UDOAttributesList
+            DiscreteFieldAttribute = UDOAttributes(FAName & Name)
+            Select Case i
+                Case 0
+                    Dim MXRef As IMxReference
+                    MXRef = DiscreteFieldAttribute.value.GetMxReference()
+                    MXRef.FullReferenceString = FAValue
+                    MxVal.PutMxReference(MXRef)
+
+                Case 1
+                    MxVal.PutInternationalString(1033, FADesc)
+
+                Case 2
+                    MxVal.PutBoolean(Alarmed)
+
+                Case 3
+                    MxVal.PutBoolean(Historized)
+
+                Case 4
+                    MxVal.PutBoolean(GenerateEvent)
+            End Select
+            DiscreteFieldAttribute.SetValue(MxVal)
+            If Locked(i) Then
+                Try
+                    DiscreteFieldAttribute.SetLocked(MxPropertyLockedEnum.MxPropertyLockedEnumEND)
+                Catch Ex As Exception
+                    Debug.WriteLine("Error general: " & Ex.Message)
+                End Try
+            End If
+            i = i + 1
+        Next
+    End Sub
+
+    Private Sub createNewAnalogFA(ByVal NewTemplate As aaGRAccessApp.ITemplate,
+                                  ByVal FAName As String,
+                                  ByVal FAValue As String,
+                                  ByVal FADesc As String,
+                                  ByVal FAEngUnits As String,
+                                  ByVal Historized As Boolean,
+                                  ByVal GenerateEvent As Boolean,
+                                  ByVal Scaled As Boolean,
+                                  ByVal Locked As List(Of Boolean))
+
+        ' Configurar los atributos como de costumbre
+        Dim AnalogFieldAttribute As IAttribute
+        Dim MxVal As New MxValueClass()
+        Dim UDOAttributes As IAttributes = NewTemplate.Attributes
+
+        Dim UDOAttributesList As String() = {".Input.InputSource", ".Desc", ".EngUnits", ".Historized", ".LogDataChangeEvent", ".Scaled"}
+
+        Dim i As Integer = 0
+
+        For Each Name In UDOAttributesList
+            AnalogFieldAttribute = UDOAttributes(FAName & Name)
+            Select Case i
+                Case 0
+                    Dim MXRef As IMxReference
+                    MXRef = AnalogFieldAttribute.value.GetMxReference()
+                    MXRef.FullReferenceString = FAValue
+                    MxVal.PutMxReference(MXRef)
+
+                Case 1
+                    MxVal.PutInternationalString(1033, FADesc)
+
+                Case 2
+                    MxVal.PutString(FAEngUnits)
+
+                Case 3
+                    MxVal.PutBoolean(Historized)
+
+                Case 4
+                    MxVal.PutBoolean(GenerateEvent)
+
+                Case 5
+                    MxVal.PutBoolean(Scaled)
+
+            End Select
+            AnalogFieldAttribute.SetValue(MxVal)
+            If Locked(i) Then
+                Try
+                    AnalogFieldAttribute.SetLocked(MxPropertyLockedEnum.MxPropertyLockedEnumEND)
+                Catch Ex As Exception
+                    Debug.WriteLine("Error general: " & Ex.Message)
+                End Try
+            End If
+            i = i + 1
+        Next
+    End Sub
+
+    Private Sub createNewUDA(ByVal template As aaGRAccessApp.ITemplate, UDAName As String(), UDAValue As String())
+        Try
+            Dim Index As Integer = 0
+            For Each UDA In UDAName
+                ' Añadir el nuevo UDA
+                template.AddUDA(
+                UDAName(Index),
+                MxDataType.MxString,
+                MxAttributeCategory.MxCategoryWriteable_USC_Lockable,
+                MxSecurityClassification.MxSecurityOperate,
+                False,
+                0)
+
+                template.Save()
+
+                ' Configurar el valor del nuevo atributo
+                Dim newAttribute As aaGRAccessApp.IAttribute = template.Attributes(UDAName(Index))
+
+                If newAttribute IsNot Nothing Then
+                    Dim attrValue As New aaGRAccessApp.MxValueClass()
+                    attrValue.PutString(UDAValue(Index))
+                    newAttribute.SetValue(attrValue)
+                Else
+                    Console.WriteLine("No se encontró el atributo recién creado.")
+                End If
+
+                ' Guardar los cambios en la plantilla
+                template.Save()
+
+                Index = Index + 1
+            Next
+            Console.WriteLine($"{Index} UDA(s) añadido(s) y configurado(s) correctamente.")
+        Catch ex As Exception
+            Console.WriteLine("Error: " & ex.Message)
+        End Try
+    End Sub
+
+
+    ' ------- Data Conversion ----------
+    Private Sub ToMxValue(Atribute As String, gAttributes As aaGRAccess.IAttributes, Instance As aaGRAccessApp.IInstance, COMAtribute As String)
+        Try
+            Dim MXVal_ As aaGRAccess.MxValue = New aaGRAccess.MxValue()
+            Dim Attr As aaGRAccess.IAttribute = gAttributes.Item(COMAtribute)
+
+            If gAttributes.Item(COMAtribute) Is Nothing Then
+                frmMain.LogBox.Items.Add("El atributo " & COMAtribute & " no existe.")
+                Return
+            End If
+            MXVal_.PutString(Atribute)
+
+            Attr.SetValue(MXVal_)
+        Catch ex As Exception
+            frmMain.LogBox.Items.Add(ex)
+        End Try
+    End Sub
 
     ''' <summary>
     ''' Since the attribute may not exist, need to provide a safe, concise way to get it without crashing the program.

@@ -9,14 +9,6 @@ Public Module aaTemplateData
     ''' The current XML schema version. This is useful in exports to determine 
     ''' if data may be missing from an older version export.
     ''' </summary>
-    ''' <history>
-    ''' 1.0 - Scripts only
-    ''' 1.1 - Scripts and Attributes to two separate directories; added Discrete Field Attributes
-    ''' 1.2 - Added version numbering to schema
-    '''     - Added Analog Field Attributes
-    '''     - Added script Declarations and Aliases
-    '''     - Added template name and template revision number to each top level XML
-    ''' </history>
     Public SchemaVersion As Double = 1.2
 
     ''' <summary>
