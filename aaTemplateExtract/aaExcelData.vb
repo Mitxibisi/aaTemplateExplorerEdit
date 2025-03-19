@@ -31,7 +31,7 @@ Public Class aaExcelData
         Dim InstanceData As New List(Of aaInstanceData)
         Dim InstancesNames As New List(Of String)()
         Dim NewInstanceData As New aaInstanceData
-        Dim CSV As New List(Of String)()
+        Dim CSVBase As New List(Of String)()
 
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial
         filePath = FilPath ' Archivo con macros
@@ -60,20 +60,18 @@ Public Class aaExcelData
             Next
 
             If generateCSV Then
-                Dim tags = ObtenerDatosColumna(InstanceNameColumnIndex, worksheet, strname, csvIndex)
-                Dim direcciones = ObtenerDatosColumna(InstanceNameColumnIndex, worksheet, strname, csv1index)
+                Dim Tags = ObtenerDatosCSV(InstanceNameColumnIndex, worksheet, strname, csvIndex, csv1index, InstanceTemplateColumnIndex)
 
-                For I As Integer = 0 To tags.Count - 1
-                    Dim original As String = direcciones(I)
-
+                For I As Integer = 0 To Tags.Count - 1
+                    Dim original As String = Tags(I)
                     ' Aplicar las sustituciones como en la fórmula de Excel
-                    original = original.Replace(".DBX", ",X") _
+                    original = Tags(I).Replace(".DBX", ",X") _
                                        .Replace(".DBDINT", ",DINT") _
                                        .Replace(".DBW", ",INT") _
                                        .Replace(".DBB", ",BYTE") _
                                        .Replace(".DBD", ",REAL")
 
-                    CSV.Add("""" & tags(I) & """" & "," & """" & original & """")
+                    CSVBase.Add(original)
                 Next
             End If
 
@@ -87,6 +85,7 @@ Public Class aaExcelData
         Next
 
         If generateCSV Then
+            Dim CSV As List(Of String) = CSVBase.Distinct().ToList()
             If generateDoubleCSV Then
                 If generateCSV Then
                     ' Obtener la ruta del escritorio del usuario actual
@@ -218,6 +217,43 @@ Public Class aaExcelData
                     End If
                 End If
             End If
+        Next
+
+        Return filteredValues
+    End Function
+
+    Private Function ObtenerDatosCSV(columnIndex As Integer, worksheet As ExcelWorksheet, instanceFilter As String, columnIndex1 As Integer, ColumnIndex2 As Integer, ColumnIndex3 As Integer) As List(Of String)
+        Dim value As Object
+        Dim filteredValues As New List(Of String)() ' Inicializamos la lista
+        Dim columnValue1 As Object = "Valor Nulo"
+        Dim columnValue2 As Object = "Valor Nulo"
+        Dim columnValue3 As Object = "T Nulo"
+
+        For row As Integer = 1 To worksheet.Dimension.End.Row
+            value = worksheet.Cells(row, columnIndex).Value
+
+            If value IsNot Nothing Then
+                Dim trimmedValue As String = value.ToString().Trim()
+
+                ' Verificar si la celda contiene el filtro
+                If Not String.IsNullOrEmpty(trimmedValue) Then
+                    ' Obtener el valor de la columna de la misma fila
+                    If columnIndex1 <> 10000 Then
+                        columnValue1 = worksheet.Cells(row, columnIndex1).Value
+                    End If
+                    If ColumnIndex2 <> 10000 Then
+                        columnValue2 = worksheet.Cells(row, ColumnIndex2).Value
+                    End If
+
+                    If ColumnIndex3 <> 10000 Then
+                        columnValue3 = worksheet.Cells(row, ColumnIndex3).Value
+                    End If
+
+                    If columnValue1 IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(columnValue1.ToString()) And columnValue2 IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(columnValue2.ToString()) And columnValue3.ToString.Contains("$") Then
+                        filteredValues.Add("""" & columnValue1.ToString().Trim() & """" & "," & """" & columnValue2.ToString.Trim() & """") ' Añadir el valor a la lista
+                    End If
+                End If
+                End If
         Next
 
         Return filteredValues
