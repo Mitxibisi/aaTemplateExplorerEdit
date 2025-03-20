@@ -44,7 +44,7 @@ Public Class frmMain
         refreshGalaxyInfo(cmboGalaxyList.SelectedValue)
 
         Refres_Instances(1)
-        Refresh_TemplateAttr()
+        Refresh_TemplateAttr(NUPdfa.Value, NUPafa.Value)
 
         restore_configdata()
 
@@ -234,7 +234,6 @@ Public Class frmMain
         End Try
     End Sub
 
-
     ' ------- Pantallas de Instancias y Configuraciones Instancias -------
     ' ------- Pantallas Configuraciones Instancias -------
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
@@ -283,7 +282,7 @@ Public Class frmMain
         End Try
     End Sub
 
-    Private Sub txtAtributes_TextChanged(sender As Object, e As EventArgs) Handles txtAtributes.TextChanged, txtArrayAtributes.TextChanged
+    Private Sub txtAtributes_TextChanged(sender As Object, e As EventArgs) Handles txtArrayAtributes.TextChanged, txtAtributes.TextChanged
         Refres_Instances()
         addExcelData(LoneAttributes, ArrayAttributes)
     End Sub
@@ -348,7 +347,7 @@ Public Class frmMain
         MessageBox.Show("Operacion Finalizada")
     End Sub
 
-    Private Sub btnCreateInstance_Click() Handles btnNewInstance.Click
+    Private Sub btnCreateInstance_Click(sender As Object, e As EventArgs) Handles btnNewInstance.Click
         Dim LoneAttributesText As New List(Of String)()
         Dim ArrayAttributesText As New List(Of String)()
 
@@ -767,9 +766,13 @@ Public Class frmMain
 
     End Sub
 
-    Private Sub Refresh_TemplateAttr()
-        addControlsToTab("Disc", 2, TPDiscFA, {"Nombre", "Descripcion"}, {"Alarmed", "Historizado", "Evento"})
-        addControlsToTab("Analog", 2, TPFAAnalog, {"Nombre", "Descripcion", "Unidad"}, {"Historizado", "Evento", "Escalado"})
+    Private Sub btnUploadTemplateAttr_Click(sender As Object, e As EventArgs) Handles btnUploadTemplateAttr.Click
+        Refresh_TemplateAttr(NUPdfa.Value, NUPafa.Value)
+    End Sub
+
+    Private Sub Refresh_TemplateAttr(DiscValue As Integer, AnalogValue As Integer)
+        addControlsToTab("Disc", DiscValue, TPDiscFA, {"Nombre", "Descripcion"}, {"Alarmed", "Historizado", "Evento"})
+        addControlsToTab("Analog", AnalogValue, TPFAAnalog, {"Nombre", "Descripcion", "Unidad"}, {"Historizado", "Evento", "Escalado"})
     End Sub
 
     Private Sub addControlsToTab(ByVal str As String, ByVal numInstancias As Integer, ByVal Page As TabPage, ByVal txtCampos As String(), ByVal txtCheckBox As String())

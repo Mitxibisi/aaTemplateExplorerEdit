@@ -191,11 +191,6 @@ Public Class aaTemplateExtract
                                               GetFieldAttributesDiscrete(gAttributes),
                                               GetFieldAttributesAnalog(gAttributes))
 
-                    Dim userAttrDataAttr As aaGRAccessApp.IAttribute = gAttributes.Item("UserAttrData")
-                    Dim currentXml As String = userAttrDataAttr.value.GetString
-                    Debug.WriteLine("XML actual: " & currentXml)
-
-
                     ' Check for derived templates and recursively get their data
                     gDerivedTemplate = gTemplate.DerivedFrom
                     If Not String.IsNullOrEmpty(gDerivedTemplate) Then
@@ -241,7 +236,7 @@ Public Class aaTemplateExtract
                 ' Consultar plantilla
                 Dim gTemplates As aaGRAccessApp.IgObjects = myGalaxy.QueryObjectsByName(aaGRAccessApp.EgObjectIsTemplateOrInstance.gObjectIsTemplate, templateList)
                 If gTemplates Is Nothing OrElse gTemplates.count = 0 Then
-                    Debug.WriteLine("Error: Plantilla '" & TemplateName & "' no encontrada.")
+                    frmMain.LogBox.Items.Add("Error: Plantilla '" & TemplateName & "' no encontrada.")
                     Exit Sub
                 End If
 
@@ -265,12 +260,12 @@ Public Class aaTemplateExtract
                                 AnalogFAScaled,
                                 AnalogFALocks)
 
-                Debug.WriteLine("Plantilla y atributos guardados y check-in realizado.")
+                frmMain.LogBox.Items.Add("Plantilla y atributos guardados y check-in realizado.")
             Else
                 Throw New ApplicationException("No se ha iniciado sesión en la galaxia.")
             End If
         Catch ex As Exception
-            Debug.WriteLine("Error general: " & ex.Message)
+            frmMain.LogBox.Items.Add("Error general: " & ex.Message)
         End Try
     End Sub
 
@@ -651,7 +646,7 @@ Public Class aaTemplateExtract
                 Try
                     DiscreteFieldAttribute.SetLocked(MxPropertyLockedEnum.MxPropertyLockedEnumEND)
                 Catch Ex As Exception
-                    Debug.WriteLine("Error general: " & Ex.Message)
+                    frmMain.LogBox.Items.Add("Error general: " & Ex.Message)
                 End Try
             End If
             i = i + 1
@@ -707,7 +702,7 @@ Public Class aaTemplateExtract
                 Try
                     AnalogFieldAttribute.SetLocked(MxPropertyLockedEnum.MxPropertyLockedEnumEND)
                 Catch Ex As Exception
-                    Debug.WriteLine("Error general: " & Ex.Message)
+                    frmMain.LogBox.Items.Add("Error general: " & Ex.Message)
                 End Try
             End If
             i = i + 1
@@ -737,17 +732,17 @@ Public Class aaTemplateExtract
                     attrValue.PutString(UDAValue(Index))
                     newAttribute.SetValue(attrValue)
                 Else
-                    Console.WriteLine("No se encontró el atributo recién creado.")
+                    frmMain.LogBox.Items.Add("No se encontró el atributo recién creado: " & newAttribute.ToString)
                 End If
 
                 ' Guardar los cambios en la plantilla
                 template.Save()
 
-                Index = Index + 1
+                Index += 1
             Next
-            Console.WriteLine($"{Index} UDA(s) añadido(s) y configurado(s) correctamente.")
+            frmMain.LogBox.Items.Add($"{Index} UDA(s) añadido(s) y configurado(s) correctamente, en la nueva plantilla " & template.ToString)
         Catch ex As Exception
-            Console.WriteLine("Error: " & ex.Message)
+            frmMain.LogBox.Items.Add("Error: " & ex.Message)
         End Try
     End Sub
 
