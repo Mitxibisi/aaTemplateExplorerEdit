@@ -33,7 +33,7 @@ Partial Class frmMain
 		Me.TPTemplates = New System.Windows.Forms.TabControl()
 		Me.TPDiscFA = New System.Windows.Forms.TabPage()
 		Me.TPFAAnalog = New System.Windows.Forms.TabPage()
-		Me.TabPage2 = New System.Windows.Forms.TabPage()
+		Me.TPUDA = New System.Windows.Forms.TabPage()
 		Me.txtValor1 = New System.Windows.Forms.TextBox()
 		Me.Label23 = New System.Windows.Forms.Label()
 		Me.Label20 = New System.Windows.Forms.Label()
@@ -128,7 +128,7 @@ Partial Class frmMain
 		Me.TabPage4.SuspendLayout()
 		Me.TabPage5.SuspendLayout()
 		Me.TPTemplates.SuspendLayout()
-		Me.TabPage2.SuspendLayout()
+		Me.TPUDA.SuspendLayout()
 		Me.TabPage6.SuspendLayout()
 		CType(Me.NUPscr, System.ComponentModel.ISupportInitialize).BeginInit()
 		CType(Me.NUPdfa, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -208,7 +208,7 @@ Partial Class frmMain
 		'
 		Me.TPTemplates.Controls.Add(Me.TPDiscFA)
 		Me.TPTemplates.Controls.Add(Me.TPFAAnalog)
-		Me.TPTemplates.Controls.Add(Me.TabPage2)
+		Me.TPTemplates.Controls.Add(Me.TPUDA)
 		Me.TPTemplates.Controls.Add(Me.TabPage3)
 		Me.TPTemplates.Controls.Add(Me.TabPage6)
 		Me.TPTemplates.Dock = System.Windows.Forms.DockStyle.Fill
@@ -240,19 +240,19 @@ Partial Class frmMain
 		Me.TPFAAnalog.Text = "Analog Attributes"
 		Me.TPFAAnalog.UseVisualStyleBackColor = True
 		'
-		'TabPage2
+		'TPUDA
 		'
-		Me.TabPage2.Controls.Add(Me.txtValor1)
-		Me.TabPage2.Controls.Add(Me.Label23)
-		Me.TabPage2.Controls.Add(Me.Label20)
-		Me.TabPage2.Controls.Add(Me.txtValueName)
-		Me.TabPage2.Location = New System.Drawing.Point(4, 22)
-		Me.TabPage2.Name = "TabPage2"
-		Me.TabPage2.Padding = New System.Windows.Forms.Padding(3)
-		Me.TabPage2.Size = New System.Drawing.Size(383, 445)
-		Me.TabPage2.TabIndex = 2
-		Me.TabPage2.Text = "UDa's"
-		Me.TabPage2.UseVisualStyleBackColor = True
+		Me.TPUDA.Controls.Add(Me.txtValor1)
+		Me.TPUDA.Controls.Add(Me.Label23)
+		Me.TPUDA.Controls.Add(Me.Label20)
+		Me.TPUDA.Controls.Add(Me.txtValueName)
+		Me.TPUDA.Location = New System.Drawing.Point(4, 22)
+		Me.TPUDA.Name = "TPUDA"
+		Me.TPUDA.Padding = New System.Windows.Forms.Padding(3)
+		Me.TPUDA.Size = New System.Drawing.Size(383, 445)
+		Me.TPUDA.TabIndex = 2
+		Me.TPUDA.Text = "UDa's"
+		Me.TPUDA.UseVisualStyleBackColor = True
 		'
 		'txtValor1
 		'
@@ -1154,8 +1154,8 @@ Partial Class frmMain
 		Me.TabPage4.ResumeLayout(False)
 		Me.TabPage5.ResumeLayout(False)
 		Me.TPTemplates.ResumeLayout(False)
-		Me.TabPage2.ResumeLayout(False)
-		Me.TabPage2.PerformLayout()
+		Me.TPUDA.ResumeLayout(False)
+		Me.TPUDA.PerformLayout()
 		Me.TabPage6.ResumeLayout(False)
 		Me.TabPage6.PerformLayout()
 		CType(Me.NUPscr, System.ComponentModel.ISupportInitialize).EndInit()
@@ -1232,7 +1232,7 @@ Partial Class frmMain
 	Friend WithEvents TPTemplates As TabControl
 	Friend WithEvents TPDiscFA As TabPage
 	Friend WithEvents TPFAAnalog As TabPage
-	Friend WithEvents TabPage2 As TabPage
+	Friend WithEvents TPUDA As TabPage
 	Friend WithEvents txtValor1 As TextBox
 	Friend WithEvents Label23 As Label
 	Friend WithEvents Label20 As Label

@@ -44,7 +44,7 @@ Public Class frmMain
         refreshGalaxyInfo(cmboGalaxyList.SelectedValue)
 
         Refres_Instances(1)
-        Refresh_TemplateAttr(NUPdfa.Value, NUPafa.Value)
+        Refresh_TemplateAttr(NUPdfa.Value, NUPafa.Value, NUPuda.Value)
 
         restore_configdata()
 
@@ -767,12 +767,13 @@ Public Class frmMain
     End Sub
 
     Private Sub btnUploadTemplateAttr_Click(sender As Object, e As EventArgs) Handles btnUploadTemplateAttr.Click
-        Refresh_TemplateAttr(NUPdfa.Value, NUPafa.Value)
+        Refresh_TemplateAttr(NUPdfa.Value, NUPafa.Value, NUPuda.Value)
     End Sub
 
-    Private Sub Refresh_TemplateAttr(DiscValue As Integer, AnalogValue As Integer)
+    Private Sub Refresh_TemplateAttr(DiscValue As Integer, AnalogValue As Integer, UDAValue As Integer)
         addControlsToTab("Disc", DiscValue, TPDiscFA, {"Nombre", "Descripcion"}, {"Alarmed", "Historizado", "Evento"})
         addControlsToTab("Analog", AnalogValue, TPFAAnalog, {"Nombre", "Descripcion", "Unidad"}, {"Historizado", "Evento", "Escalado"})
+        addControlsToTab("UDA", UDAValue, TPUDA, {"Nombre", "Valor"}, {})
     End Sub
 
     Private Sub addControlsToTab(ByVal str As String, ByVal numInstancias As Integer, ByVal Page As TabPage, ByVal txtCampos As String(), ByVal txtCheckBox As String())
@@ -790,7 +791,7 @@ Public Class frmMain
             Dim grupo As New GroupBox()
             grupo.Text = "Attributo " & str & (i + 1)
             grupo.Width = Page.Width - 20
-            grupo.Height = (((txtCampos.Count + txtCheckBox.Count) * 32))
+            grupo.Height = (((txtCampos.Count + txtCheckBox.Count) * 29)) + 20
             grupo.Location = New Point(10, yOffset)
 
             yOffset += grupo.Height + 10 ' Espaciado entre grupos
